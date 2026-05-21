@@ -68,6 +68,38 @@ export const ACTIONS = {
     }),
     action("recover", "恢复节奏", 1, "可持续的科研节奏本身就是能力。", { health: 8, pressure: -7, focus: 2 }),
   ],
+  talent_track: [
+    action("youqing", "冲击优青", 3, "青年人才窗口很窄，前期成果、申请书和同行可见度都会被放在一起比较。", { writing: 5, reputation: 5, pressure: 5 }, { talentTitles: 14, peerRecognition: 6 }, {
+      maxUses: 2,
+      requirements: [requirement("年龄", "age", 0, "age", 40), requirement("声望", "reputation", 42), requirement("代表作", "representativeWorks", 1, "progress")],
+      risk: { chance: 0.42, text: "优青落选，评审意见写着“基础较好，但优势不够突出”。", effects: { pressure: 5, writing: 3 }, progress: { talentTitles: -5 } },
+    }),
+    action("changjiang_young", "申报长江青年", 3, "高校体系里的青年头衔既看成果，也看平台、推荐和学科位置。", { reputation: 6, network: 4, pressure: 5 }, { talentTitles: 12, peerRecognition: 8 }, {
+      maxUses: 2,
+      requirements: [requirement("年龄", "age", 0, "age", 40), requirement("合作", "network", 44), requirement("团队建设", "team", 38, "progress")],
+      risk: { chance: 0.4, text: "长江青年评审未通过，你意识到平台叙事和同行推荐也会影响窗口期。", effects: { pressure: 4 }, progress: { peerRecognition: -3 } },
+    }),
+    action("jieqing", "冲击杰青", 4, "这不再是普通青年项目，而是对原创主线、代表作和同行认可的综合审查。", { writing: 6, reputation: 7, pressure: 7 }, { talentTitles: 18, peerRecognition: 10, strategicContribution: 4 }, {
+      maxUses: 2,
+      requirements: [requirement("年龄", "age", 0, "age", 48), requirement("贡献", "contribution", 58), requirement("代表作", "representativeWorks", 2, "progress"), requirement("同行认可", "peerRecognition", 30, "progress")],
+      risk: { chance: 0.48, text: "杰青落选，同行认可没有消失，但你也错过了一次关键资源入口。", effects: { pressure: 6, perseverance: 3 }, progress: { talentTitles: -6 } },
+    }),
+    action("overseas_young", "海外优青回国", 3, "把海外训练、合作网络和回国平台捆到同一份申请里。", { network: 6, reputation: 5, money: -4, pressure: 4 }, { talentTitles: 12, peerRecognition: 6 }, {
+      maxUses: 1,
+      requirements: [requirement("年龄", "age", 0, "age", 42), requirement("合作", "network", 48), requirement("写作", "writing", 42)],
+      risk: { chance: 0.35, text: "海外优青申请没能落地，回国平台和方向匹配还需要重新谈判。", effects: { pressure: 5, money: -3 }, progress: { talentTitles: -4 } },
+    }),
+    action("peer_seminar", "组织领域研讨", 2, "让同行理解你的问题，而不是只在表格里看指标。", { network: 6, eq: 4, reputation: 4, health: -2 }, { peerRecognition: 10, integrity: 3 }, {
+      maxUses: 3,
+    }),
+    action("integrity_record", "整理学术信用", 2, "公开数据、厘清贡献和署名，把经得起审查当成长期资产。", { contribution: 4, pressure: -2, reputation: 3 }, { integrity: 10, peerRecognition: 4 }, {
+      maxUses: 3,
+    }),
+    action("protect_students", "保护学生成果", 2, "短期看不如多发一篇论文，但学生会记住谁在关键时刻站出来。", { eq: 6, reputation: 2, pressure: 3 }, { talent: 8, integrity: 6 }, {
+      maxUses: 3,
+    }),
+    action("recover", "从窗口期抽身", 1, "承认窗口期压力存在，但不要把自己完全交给它。", { health: 8, pressure: -8, focus: 2 }),
+  ],
   professor: [
     action("major_grant", "组织重大项目", 4, "把多个方向、团队和资源合成一个目标。", { reputation: 6, network: 5, pressure: 6 }, { majorProject: 12, strategicContribution: 5 }, {
       maxUses: 3,
@@ -93,6 +125,37 @@ export const ACTIONS = {
       risk: { chance: 0.55, text: "奖项申报未中，成果还需要更长时间被同行确认。", effects: { pressure: 4 }, progress: { nationalAwards: -1 } },
     }),
     action("recover", "留出空白", 1, "越到后期，越需要避免被事务吞没。", { health: 8, pressure: -7, focus: 2 }),
+  ],
+  national_leader: [
+    action("changjiang_professor", "申报长江特聘", 3, "教授阶段的头衔更看代表性成果、平台责任和学科带动力。", { reputation: 7, network: 5, pressure: 5 }, { talentTitles: 14, peerRecognition: 8 }, {
+      maxUses: 2,
+      requirements: [requirement("年龄", "age", 0, "age", 55), requirement("声望", "reputation", 62), requirement("重大项目", "majorProject", 45, "progress")],
+      risk: { chance: 0.38, text: "长江特聘未能入选。评审没有否定成果，但认为学科带动力还不够清晰。", effects: { pressure: 5 }, progress: { peerRecognition: -4 } },
+    }),
+    action("innovation_group", "组建创新群体", 4, "从一个课题组变成一个方向共同体，考验资源整合和年轻骨干培养。", { network: 7, eq: 5, pressure: 6 }, { majorProject: 10, talent: 8, talentTitles: 10 }, {
+      maxUses: 2,
+      requirements: [requirement("团队建设", "team", 55, "progress"), requirement("人才培养", "talent", 42, "progress"), requirement("合作", "network", 60)],
+      risk: { chance: 0.28, text: "创新群体申请受挫，几个子方向还没有形成足够统一的问题意识。", effects: { pressure: 5 }, progress: { majorProject: -4 } },
+    }),
+    action("national_platform", "承担国家级平台", 4, "平台会放大资源，也会放大行政、协调和长期责任。", { reputation: 6, money: 8, pressure: 7, health: -4 }, { majorProject: 12, strategicContribution: 10, peerRecognition: 5 }, {
+      maxUses: 3,
+      requirements: [requirement("人才项目", "talentTitles", 45, "progress"), requirement("声望", "reputation", 68)],
+    }),
+    action("strategic_problem", "攻关战略问题", 4, "把长期原创方向接到更大的科学或工程问题上。", { innovation: 7, contribution: 9, pressure: 7 }, { strategicContribution: 14, representativeWorks: 1, peerRecognition: 6 }, {
+      maxUses: 3,
+      requirements: [requirement("创新", "innovation", 62), requirement("重大项目", "majorProject", 55, "progress")],
+      risk: { chance: 0.26, text: "战略问题推进缓慢，短期看不到结果，但团队积累了难得的数据和方法。", effects: { perseverance: 4, pressure: 5 }, progress: { strategicContribution: -4 } },
+    }),
+    action("field_consensus", "形成领域共识", 3, "院士候选不是自我申报，同行是否愿意推荐会在这里逐渐显形。", { reputation: 6, network: 7, pressure: 4 }, { peerRecognition: 12, academyReview: 6 }, {
+      maxUses: 3,
+      requirements: [requirement("同行认可", "peerRecognition", 45, "progress")],
+    }),
+    action("award_bundle", "整理国家奖证据链", 3, "把分散多年的论文、应用和人才培养整理成可被审查的证据。", { writing: 5, reputation: 6, pressure: 5 }, { nationalAwards: 1, strategicContribution: 6, academyReview: 4 }, {
+      maxUses: 2,
+      requirements: [requirement("战略贡献", "strategicContribution", 45, "progress"), requirement("代表作", "representativeWorks", 3, "progress")],
+      risk: { chance: 0.45, text: "国家奖申报未中，成果还需要更长时间被共同体确认。", effects: { pressure: 5 }, progress: { nationalAwards: -1 } },
+    }),
+    action("recover", "维持生活秩序", 1, "越接近顶端，越需要有人提醒你不是一台评审材料生成机器。", { health: 8, pressure: -8, focus: 2 }),
   ],
   academician_candidate: [
     action("summarize", "凝练原创贡献", 3, "把一生工作压缩成几条真正站得住的贡献。", { contribution: 8, writing: 5, pressure: 4 }, { academyReview: 12 }, {

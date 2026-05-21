@@ -33,6 +33,22 @@ export function isFinalStage(game) {
   return game.stageIndex === STAGES.length - 1;
 }
 
+function getStageStartAge(stageIndex) {
+  return STAGES.slice(0, Math.max(0, stageIndex)).reduce((age, stage) => age + (stage.years ?? 1), 17);
+}
+
+function normalizeStageIndex(saved) {
+  const rawStageIndex = Number.isInteger(saved.stageIndex) ? saved.stageIndex : 0;
+  const hasAge = Number.isFinite(saved.age);
+
+  if (!hasAge) {
+    if (rawStageIndex === 5) return getStageIndex("professor");
+    if (rawStageIndex === 6) return getStageIndex("academician_candidate");
+  }
+
+  return STAGES[rawStageIndex] ? rawStageIndex : 0;
+}
+
 export function shouldShowEnding(game) {
   return Boolean(game.ending) && isFinalStage(game) && !game.pendingGraduateChoice;
 }
@@ -43,6 +59,7 @@ export function createInitialGame(overrides = {}) {
     stageIndex: 0,
     turn: 1,
     ap: STAGES[0].ap,
+    age: 17,
     stats: { ...INITIAL_STATS },
     progress: { ...INITIAL_PROGRESS },
     usedEvents: [],
@@ -108,14 +125,16 @@ export function normalizeSavedGame(saved) {
   if (!saved || typeof saved !== "object") return createInitialGame();
 
   const base = createInitialGame();
-  const stageIndex = Number.isInteger(saved.stageIndex) && STAGES[saved.stageIndex] ? saved.stageIndex : 0;
+  const stageIndex = normalizeStageIndex(saved);
   const stage = STAGES[stageIndex];
+  const fallbackAge = getStageStartAge(stageIndex);
   const next = {
     ...base,
     ...saved,
     stageIndex,
     turn: Number.isInteger(saved.turn) ? Math.max(1, Math.min(saved.turn, stage.turns)) : base.turn,
     ap: Number.isFinite(saved.ap) ? Math.max(0, saved.ap) : base.ap,
+    age: Number.isFinite(saved.age) ? Math.max(16, Math.min(80, saved.age)) : fallbackAge,
     stats: { ...INITIAL_STATS, ...(saved.stats ?? {}) },
     progress: { ...INITIAL_PROGRESS, ...(saved.progress ?? {}) },
     usedEvents: Array.isArray(saved.usedEvents) ? saved.usedEvents : [],

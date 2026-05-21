@@ -9,9 +9,12 @@ export const ENDINGS = [
       ["高影响论文", "highImpactPapers", 4],
       ["代表作", "representativeWorks", 3],
       ["重要奖项", "nationalAwards", 2],
+      ["人才项目", "talentTitles", 62],
       ["重大项目", "majorProject", 74],
       ["人才培养", "talent", 70],
       ["战略贡献", "strategicContribution", 40],
+      ["同行认可", "peerRecognition", 66],
+      ["学术信用", "integrity", 60],
       ["贡献", "contribution", 90, "stats"],
       ["声望", "reputation", 88, "stats"],
       ["合作", "network", 75, "stats"],
@@ -23,9 +26,12 @@ export const ENDINGS = [
       p.highImpactPapers >= 4 &&
       p.representativeWorks >= 3 &&
       p.nationalAwards >= 2 &&
+      p.talentTitles >= 62 &&
       p.majorProject >= 74 &&
       p.talent >= 70 &&
       p.strategicContribution >= 40 &&
+      p.peerRecognition >= 66 &&
+      p.integrity >= 60 &&
       s.contribution >= 90 &&
       s.reputation >= 88 &&
       s.network >= 75 &&
@@ -43,6 +49,7 @@ export const ENDINGS = [
       ["代表作", "representativeWorks", 3],
       ["重大项目", "majorProject", 72],
       ["战略贡献", "strategicContribution", 35],
+      ["同行认可", "peerRecognition", 55],
       ["贡献", "contribution", 86, "stats"],
     ],
     test: (s, p) =>
@@ -51,6 +58,7 @@ export const ENDINGS = [
       p.representativeWorks >= 3 &&
       p.majorProject >= 72 &&
       p.strategicContribution >= 35 &&
+      p.peerRecognition >= 55 &&
       s.contribution >= 86,
     text: "你未必拿到所有头衔，但你的工作已经成为后来者绕不开的坐标。",
   },
@@ -60,6 +68,7 @@ export const ENDINGS = [
     method: "在教授阶段稳定培养人才，并形成可见的团队成果或重大项目。",
     requirements: [
       ["人才培养", "talent", 55],
+      ["人才项目", "talentTitles", 35],
       ["声望", "reputation", 60, "stats"],
       ["录用论文", "acceptedPapers", 8],
       ["贡献", "contribution", 55, "stats"],
@@ -67,7 +76,7 @@ export const ENDINGS = [
       ["或 代表作", "representativeWorks", 3],
     ],
     test: (s, p) =>
-      (p.talent >= 55 && s.reputation >= 60 && p.acceptedPapers >= 8 && s.contribution >= 55) ||
+      (p.talent >= 55 && p.talentTitles >= 35 && s.reputation >= 60 && p.acceptedPapers >= 8 && s.contribution >= 55) ||
       (p.majorProject >= 55 && s.contribution >= 45) ||
       (p.representativeWorks >= 3 && s.contribution >= 55),
     text: "你建立了稳定团队，培养了学生，也留下了扎实的代表性成果。",

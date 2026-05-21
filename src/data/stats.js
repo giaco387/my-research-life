@@ -18,6 +18,9 @@ export const STAT_LABELS = {
   representativeWorks: "代表作",
   nationalAwards: "重要奖项",
   strategicContribution: "战略贡献",
+  talentTitles: "人才项目",
+  peerRecognition: "同行认可",
+  integrity: "学术信用",
 };
 
 export const INITIAL_STATS = {
@@ -55,4 +58,7 @@ export const INITIAL_PROGRESS = {
   representativeWorks: 0,
   nationalAwards: 0,
   strategicContribution: 0,
+  talentTitles: 0,
+  peerRecognition: 0,
+  integrity: 62,
 };

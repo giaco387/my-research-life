@@ -24,12 +24,15 @@ export function getEnding(stats, progress) {
 }
 
 export function getRequirementValue(game, requirement) {
-  const source = requirement.type === "stat" ? game.stats : game.progress;
+  if (requirement.source === "age" || requirement.type === "age") return game.age ?? 17;
+  const source = requirement.type === "stat" || requirement.source === "stats" ? game.stats : game.progress;
   return source[requirement.key] ?? 0;
 }
 
 export function meetsGraduateRequirement(game, requirement) {
-  return getRequirementValue(game, requirement) >= requirement.min;
+  const value = getRequirementValue(game, requirement);
+  if (requirement.max !== undefined && value > requirement.max) return false;
+  return value >= requirement.min;
 }
 
 export function getGraduateRouteChance(game, route) {
@@ -99,16 +102,35 @@ export function stageBonus(stageId, stats, progress) {
 
   if (stageId === "young_faculty") {
     const readiness = progress.fund * 0.45 + progress.team * 0.35 + stats.reputation * 0.2;
-    if (readiness >= 70) return { text: "你站稳了独立 PI 的位置，团队开始产出稳定成果。", effects: { reputation: 8, contribution: 6, money: 8 } };
+    if (readiness >= 70) return { text: "你站稳了独立 PI 的位置，团队开始产出稳定成果，也进入青年人才项目的窗口期。", effects: { reputation: 8, contribution: 6, money: 8 } };
     if (readiness >= 48) return { text: "你保住了方向，也理解了管理和科研的双重压力。", effects: { eq: 4, network: 4, pressure: 3 } };
     return { text: "青年教师阶段消耗很大，你的团队基础仍然薄弱。", effects: { pressure: 7, health: -4 } };
   }
 
+  if (stageId === "talent_track") {
+    const readiness = progress.talentTitles * 0.45 + progress.peerRecognition * 0.3 + progress.integrity * 0.1 + stats.reputation * 0.15;
+    if (readiness >= 72) return { text: "你在青年人才窗口中获得关键认可，但也更清楚头衔只是资源入口，不是学术本身。", effects: { reputation: 9, network: 6, money: 6 } };
+    if (readiness >= 50) return { text: "你没有拿满所有帽子，但在同行中留下了可被认真讨论的位置。", effects: { reputation: 5, network: 4, pressure: 2 } };
+    return { text: "人才项目窗口滑过去了一部分，后续更需要靠代表作、团队和重大项目重新证明自己。", effects: { pressure: 6, perseverance: 4 } };
+  }
+
   if (stageId === "professor") {
-    const readiness = progress.majorProject * 0.45 + progress.talent * 0.35 + stats.contribution * 0.2;
-    if (readiness >= 72) return { text: "你形成了学术影响和人才梯队，进入院士候选视野。", effects: { reputation: 10, contribution: 8, network: 6 } };
+    const readiness = progress.majorProject * 0.38 + progress.talent * 0.3 + progress.talentTitles * 0.16 + stats.contribution * 0.16;
+    if (readiness >= 72) return { text: "你形成了学术影响和人才梯队，开始进入国家级人才与重大项目的更高层次竞争。", effects: { reputation: 10, contribution: 8, network: 6 } };
     if (readiness >= 50) return { text: "你成为稳健的学术带头人，但距离最高评审仍有差距。", effects: { reputation: 6, contribution: 4 } };
     return { text: "你承担了大量事务，真正能沉淀为学术影响的成果偏少。", effects: { pressure: 6, eq: 3 } };
+  }
+
+  if (stageId === "national_leader") {
+    const readiness =
+      progress.majorProject * 0.26 +
+      progress.talentTitles * 0.24 +
+      progress.strategicContribution * 0.24 +
+      progress.peerRecognition * 0.16 +
+      stats.contribution * 0.1;
+    if (readiness >= 76) return { text: "你用重大项目、团队梯队和长期原创贡献进入院士候选视野。", effects: { reputation: 10, contribution: 8, network: 8 } };
+    if (readiness >= 55) return { text: "你具备学术领军者的基本轮廓，但最高评审还会追问代表性成果和同行共识。", effects: { reputation: 6, contribution: 5, pressure: 3 } };
+    return { text: "国家级平台带来资源，也放大了消耗。你还需要更清晰的原创主线。", effects: { pressure: 7, health: -3 } };
   }
 
   return { text: "你进入最终评审阶段，所有积累都会被重新衡量。", effects: { reputation: 2 } };

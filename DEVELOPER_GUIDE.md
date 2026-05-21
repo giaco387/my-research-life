@@ -79,7 +79,7 @@ public/stages/professor.png
 public/stages/academician-candidate.png
 ```
 
-游戏会按当前阶段自动加载对应图片。如果阶段图片不存在，会回退到默认 `hero.png`。
+青年人才竞争期暂时复用 `young-faculty.png`，国家级人才与重大项目期暂时复用 `professor.png`。游戏会按当前阶段自动加载对应图片。如果阶段图片不存在，会回退到默认 `hero.png`。
 
 ## 图片生成脚本
 
@@ -150,3 +150,4 @@ npm.cmd run deploy
 - 新增阶段图片。
 - 新增版本号角标。
 - 新增 `?dev=1` 开发者速览模式。
+- 新增年龄系统、青年人才竞争期、国家级人才与重大项目期，以及优青/杰青/长江等人才项目窗口。

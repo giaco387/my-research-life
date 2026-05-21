@@ -174,7 +174,7 @@ button:disabled {
   max-width: 1440px;
   margin: 0 auto 18px;
   display: grid;
-  grid-template-columns: 150px 150px 130px minmax(260px, 1fr);
+  grid-template-columns: 150px 150px 120px 130px minmax(260px, 1fr);
   gap: 1px;
   overflow: hidden;
   border: 1px solid rgba(203, 213, 225, 0.8);

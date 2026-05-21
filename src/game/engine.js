@@ -89,12 +89,14 @@ export function settleStage(game) {
   const finished = getStage(game);
   const bonus = stageBonus(finished.id, game.stats, game.progress);
   const stats = applyDelta(game.stats, bonus.effects);
+  const age = Math.min(80, (game.age ?? 17) + (finished.years ?? 1));
 
   if (finished.id === "undergraduate") {
     return appendLogs(
       {
         ...game,
         stats,
+        age,
         ending: null,
         pendingAdvance: false,
         pendingGraduateChoice: true,
@@ -110,6 +112,7 @@ export function settleStage(game) {
       stageIndex: game.stageIndex + 1,
       turn: 1,
       ap: nextStage.ap,
+      age,
       stats,
       ending: null,
       pendingAdvance: false,
@@ -181,6 +184,7 @@ export function chooseGraduateRoute(game, route, random = Math.random) {
   const result = resolveGraduateRoute(game, route, random);
   const stats = applyDelta(game.stats, result.effects);
   const progress = applyDelta(game.progress, result.progress);
+  const age = Math.min(80, (game.age ?? 17) + (route.ageDelta ?? 0));
   const routeLog = `读研去向：${route.name}。${result.text}`;
 
   if (result.ending) {
@@ -189,6 +193,7 @@ export function chooseGraduateRoute(game, route, random = Math.random) {
         ...game,
         stats,
         progress,
+        age,
         ending: result.ending,
         pendingGraduateChoice: false,
         flags: { ...(game.flags ?? {}), ...(result.flags ?? {}) },
@@ -209,6 +214,7 @@ export function chooseGraduateRoute(game, route, random = Math.random) {
       stageIndex: nextStageIndex,
       turn: 1,
       ap: nextStage.ap,
+      age,
       stats,
       progress,
       ending: null,

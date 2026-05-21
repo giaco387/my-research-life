@@ -45,13 +45,23 @@ const STAGE_IMAGE_FILES = {
   master: "master.png",
   phd: "phd.png",
   young_faculty: "young-faculty.png",
+  talent_track: "young-faculty.png",
   professor: "professor.png",
+  national_leader: "professor.png",
   academician_candidate: "academician-candidate.png",
 };
 
 function getStageImageSrc(stageId) {
   const file = STAGE_IMAGE_FILES[stageId];
   return file ? `${import.meta.env.BASE_URL}stages/${file}` : heroImage;
+}
+
+function getStageStartIndex(stageId) {
+  return STAGES.findIndex((stage) => stage.id === stageId);
+}
+
+function getStageStartAge(stageIndex) {
+  return STAGES.slice(0, Math.max(0, stageIndex)).reduce((age, stage) => age + (stage.years ?? 1), 17);
 }
 
 function loadLegacyGame() {
@@ -124,6 +134,7 @@ function App() {
     () => [
       ["knowledge", "perseverance", "focus", "health", "pressure", "eq", "money", "reputation"],
       ["literature", "experiment", "writing", "innovation", "network", "contribution"],
+      ["talentTitles", "peerRecognition", "integrity"],
     ],
     [],
   );
@@ -200,6 +211,7 @@ function App() {
       stageIndex,
       turn: 1,
       ap: targetStage.ap,
+      age: getStageStartAge(stageIndex),
       stats: {
         ...createInitialGame().stats,
         knowledge: 70,
@@ -220,6 +232,9 @@ function App() {
       progress: {
         ...createInitialGame().progress,
         ...Object.fromEntries(Object.keys(targetStage.progress).map((key) => [key, 35])),
+        talentTitles: stageIndex >= getStageStartIndex("talent_track") ? 42 : 0,
+        peerRecognition: stageIndex >= getStageStartIndex("talent_track") ? 42 : 0,
+        integrity: 65,
       },
       logs: [`开发者速览：已跳转到${targetStage.name}阶段。`],
     });
@@ -235,6 +250,7 @@ function App() {
       stageIndex,
       turn: stage.turns,
       ap: 0,
+      age: getStageStartAge(stageIndex),
       stats: {
         ...createInitialGame().stats,
         knowledge: 72,
@@ -339,6 +355,10 @@ function App() {
           <strong>{game.turn} / {stage.turns}</strong>
         </div>
         <div>
+          <span>年龄</span>
+          <strong>{game.age ?? 17} 岁</strong>
+        </div>
+        <div>
           <span>行动点</span>
           <strong>{game.ap}</strong>
         </div>
@@ -354,7 +374,7 @@ function App() {
           {statGroups.map((group, index) => (
             <div className="stat-group" key={index}>
               {group.map((key) => (
-                <StatBar key={key} label={STAT_LABELS[key]} value={game.stats[key]} danger={key === "pressure"} />
+                <StatBar key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
               ))}
             </div>
           ))}
@@ -590,7 +610,7 @@ function SaveSlotList({ slots, onStart, onContinue, onDelete }) {
 function getSlotTitle(game) {
   if (game.ending) return game.ending.title;
   const stage = STAGES[game.stageIndex] ?? STAGES[0];
-  return `${stage.name} 第 ${game.turn} 回合`;
+  return `${stage.name} 第 ${game.turn} 回合，${game.age ?? 17} 岁`;
 }
 
 function getSlotSummary(slot) {
@@ -598,7 +618,7 @@ function getSlotSummary(slot) {
   const updatedAt = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString("zh-CN", { hour12: false }) : "未知时间";
   if (game.ending) return `${game.ending.text} 保存于 ${updatedAt}`;
   const stage = STAGES[game.stageIndex] ?? STAGES[0];
-  return `${stage.subtitle}，行动点 ${game.ap}。保存于 ${updatedAt}`;
+  return `${stage.subtitle}，行动点 ${game.ap}，年龄 ${game.age ?? 17}。保存于 ${updatedAt}`;
 }
 
 function EffectChips({ effects, progress }) {

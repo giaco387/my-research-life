@@ -38,4 +38,12 @@ assert.equal(repaired[0].game.stageIndex, 0);
 assert.equal(repaired[0].game.turn, 1);
 assert.equal(repaired[0].game.ap, 0);
 
+const migratedProfessor = normalizeSaveSlots([{ id: 1, game: { stageIndex: 5, turn: 2, ap: 4 } }]);
+assert.equal(migratedProfessor[0].game.stageIndex, 6);
+assert.equal(migratedProfessor[0].game.age, 39);
+
+const migratedAcademician = normalizeSaveSlots([{ id: 1, game: { stageIndex: 6, turn: 2, ap: 4 } }]);
+assert.equal(migratedAcademician[0].game.stageIndex, 8);
+assert.equal(migratedAcademician[0].game.age, 54);
+
 console.log("多存档状态检查通过。");

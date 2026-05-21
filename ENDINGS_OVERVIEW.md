@@ -2,7 +2,7 @@
 
 ## 1. 实现位置
 
-结局定义在 `src/App.jsx` 的 `ENDINGS` 常量中。
+结局定义在 `src/data/endings.js` 的 `ENDINGS` 常量中。
 
 游戏最终进入 `academician_candidate` 阶段末尾后，会调用：
 
@@ -29,13 +29,16 @@ function getEnding(stats, progress) {
 达成条件：
 
 - 院士评审 `academyReview >= 90`
-- 录用论文 `acceptedPapers >= 18`
-- 高影响论文 `highImpactPapers >= 6`
-- 代表作 `representativeWorks >= 5`
+- 录用论文 `acceptedPapers >= 16`
+- 高影响论文 `highImpactPapers >= 4`
+- 代表作 `representativeWorks >= 3`
 - 重要奖项 `nationalAwards >= 2`
-- 重大项目 `majorProject >= 85`
-- 人才培养 `talent >= 75`
-- 战略贡献 `strategicContribution >= 60`
+- 人才项目 `talentTitles >= 62`
+- 重大项目 `majorProject >= 74`
+- 人才培养 `talent >= 70`
+- 战略贡献 `strategicContribution >= 40`
+- 同行认可 `peerRecognition >= 66`
+- 学术信用 `integrity >= 60`
 - 学术贡献 `contribution >= 90`
 - 学术声望 `reputation >= 88`
 - 合作网络 `network >= 75`
@@ -47,13 +50,16 @@ function getEnding(stats, progress) {
 ```js
 test: (s, p) =>
   p.academyReview >= 90 &&
-  p.acceptedPapers >= 18 &&
-  p.highImpactPapers >= 6 &&
-  p.representativeWorks >= 5 &&
+  p.acceptedPapers >= 16 &&
+  p.highImpactPapers >= 4 &&
+  p.representativeWorks >= 3 &&
   p.nationalAwards >= 2 &&
-  p.majorProject >= 85 &&
-  p.talent >= 75 &&
-  p.strategicContribution >= 60 &&
+  p.talentTitles >= 62 &&
+  p.majorProject >= 74 &&
+  p.talent >= 70 &&
+  p.strategicContribution >= 40 &&
+  p.peerRecognition >= 66 &&
+  p.integrity >= 60 &&
   s.contribution >= 90 &&
   s.reputation >= 88 &&
   s.network >= 75 &&
@@ -72,16 +78,24 @@ test: (s, p) =>
 达成条件：
 
 - 院士评审 `academyReview >= 68`
+- 高影响论文 `highImpactPapers >= 3`
 - 代表作 `representativeWorks >= 3`
-- 学术贡献 `contribution >= 82`
+- 重大项目 `majorProject >= 72`
+- 战略贡献 `strategicContribution >= 35`
+- 同行认可 `peerRecognition >= 55`
+- 学术贡献 `contribution >= 86`
 
 实现：
 
 ```js
 test: (s, p) =>
   p.academyReview >= 68 &&
+  p.highImpactPapers >= 3 &&
   p.representativeWorks >= 3 &&
-  s.contribution >= 82
+  p.majorProject >= 72 &&
+  p.strategicContribution >= 35 &&
+  p.peerRecognition >= 55 &&
+  s.contribution >= 86
 ```
 
 设计意图：
@@ -95,14 +109,19 @@ test: (s, p) =>
 达成条件：
 
 - 人才培养 `talent >= 60`
-- 或学术声望 `reputation >= 65`
+- 人才项目 `talentTitles >= 35`
+- 学术声望 `reputation >= 60`
+- 录用论文 `acceptedPapers >= 8`
+- 学术贡献 `contribution >= 55`
+- 或重大项目/代表作达到较高水平
 
 实现：
 
 ```js
 test: (s, p) =>
-  p.talent >= 60 ||
-  s.reputation >= 65
+  (p.talent >= 55 && p.talentTitles >= 35 && s.reputation >= 60 && p.acceptedPapers >= 8 && s.contribution >= 55) ||
+  (p.majorProject >= 55 && s.contribution >= 45) ||
+  (p.representativeWorks >= 3 && s.contribution >= 55)
 ```
 
 设计意图：
@@ -176,8 +195,8 @@ test: () => true
 1. 当选院士
 2. 学术大师
 3. 优秀教授
-4. 转向产业研发
-5. 科研受挫
+4. 科研受挫
+5. 转向产业研发
 6. 平凡但完整
 
 注意：因为使用 `Array.find`，如果一个玩家同时满足多个结局，只会获得最靠前的那个。

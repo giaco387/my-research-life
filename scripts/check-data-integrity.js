@@ -17,6 +17,7 @@ function assertDeltaKeys(delta, context) {
 
 function assertRequirements(requirements = [], context) {
   for (const requirement of requirements) {
+    if (requirement.source === "age" || requirement.type === "age") continue;
     const validKeys = requirement.source === "progress" ? progressKeys : statKeys;
     assert.ok(validKeys.has(requirement.key), `${context} requirement uses unknown key: ${requirement.key}`);
   }
@@ -74,6 +75,7 @@ for (const route of GRADUATE_ROUTES) {
   assertDeltaKeys(route.successProgress, `${route.id}.successProgress`);
   assertDeltaKeys(route.failProgress, `${route.id}.failProgress`);
   for (const requirement of route.requirements ?? []) {
+    if (requirement.type === "age" || requirement.source === "age") continue;
     const validKeys = requirement.type === "stat" ? statKeys : progressKeys;
     assert.ok(validKeys.has(requirement.key), `${route.id} requirement uses unknown key: ${requirement.key}`);
   }

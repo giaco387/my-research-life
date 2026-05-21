@@ -70,6 +70,21 @@ export const EVENTS = {
       choice("调整课题方向", { innovation: 3, pressure: 2 }, { team: 4 }),
     ]),
   ],
+  talent_track: [
+    event("window_pressure", "青年人才窗口期", "同龄人的名字出现在人才项目公示里。你知道这不是全部评价，却很难不把它当成倒计时。", [
+      choice("集中准备申请", { writing: 5, pressure: 6 }, { talentTitles: 8 }),
+      choice("先稳住原创主线", { innovation: 4, contribution: 3, pressure: 2 }, { peerRecognition: 5 }),
+      choice("主动和同行交流", { network: 5, eq: 3, pressure: 3 }, { peerRecognition: 6 }),
+    ]),
+    event("title_or_problem", "帽子还是问题", "学院希望你把主要精力放到人才项目材料上，但学生的关键实验也到了转折点。", [
+      choice("优先申请材料", { writing: 5, reputation: 3, pressure: 5 }, { talentTitles: 6 }),
+      choice("陪学生把实验做完", { eq: 5, contribution: 3, pressure: 3 }, { talent: 6, integrity: 5 }),
+    ]),
+    event("recommendation_call", "推荐电话", "一位前辈愿意帮你推荐，但提醒你：“材料要讲清楚你到底解决了什么问题。”", [
+      choice("重写原创贡献叙事", { writing: 5, contribution: 4, pressure: 4 }, { peerRecognition: 7 }),
+      choice("补齐代表作证据", { focus: 4, pressure: 5 }, { representativeWorks: 1, talentTitles: 4 }),
+    ]),
+  ],
   professor: [
     event("academic_dispute", "学术争议", "你的代表性成果被同行公开质疑。", [
       choice("公开数据和复现实验", { reputation: 4, contribution: 4, pressure: 6 }, { majorProject: 5 }),
@@ -78,6 +93,20 @@ export const EVENTS = {
     event("student_breakthrough", "学生取得突破", "你指导的博士生做出了超出预期的成果。", [
       choice("让学生做一作独立展示", { reputation: 4, eq: 5, contribution: 3 }, { talent: 8 }),
       choice("整合进团队主线", { contribution: 5, pressure: 2 }, { majorProject: 6 }),
+    ]),
+  ],
+  national_leader: [
+    event("platform_audit", "平台评估", "国家级平台要求提交阶段总结。表格很厚，但真正难写的是哪些贡献经得起十年后再看。", [
+      choice("用数据和开放材料说话", { reputation: 4, pressure: 4 }, { integrity: 8, peerRecognition: 5 }),
+      choice("突出应用和战略价值", { writing: 4, network: 3, pressure: 3 }, { strategicContribution: 8 }),
+    ]),
+    event("field_split", "领域分歧", "你的方向开始影响学科路线，也引来公开争论。年轻同行在等你如何回应。", [
+      choice("组织公开专题讨论", { network: 6, eq: 4, pressure: 4 }, { peerRecognition: 8, talent: 4 }),
+      choice("用下一篇代表作回应", { innovation: 5, contribution: 5, pressure: 6 }, { representativeWorks: 1, strategicContribution: 6 }),
+    ]),
+    event("student_lineage", "学生形成梯队", "几名学生已经成为独立 PI。你第一次意识到，人才培养不只是评价指标。", [
+      choice("让他们独立署名和申报", { eq: 6, reputation: 3 }, { talent: 9, peerRecognition: 4 }),
+      choice("整合成联合攻关网络", { network: 6, pressure: 3 }, { majorProject: 6, strategicContribution: 5 }),
     ]),
   ],
   academician_candidate: [

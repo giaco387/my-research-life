@@ -1,599 +1,563 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
+import "./App.css";
 
-// ─── GAME DATA ────────────────────────────────────────────────────────────────
+const SAVE_KEY = "research-road-save-v1";
+
+const STAT_LABELS = {
+  knowledge: "知识",
+  perseverance: "毅力",
+  focus: "专注",
+  health: "体力",
+  pressure: "压力",
+  eq: "情商",
+  money: "资金",
+  reputation: "声望",
+  literature: "文献",
+  experiment: "实验",
+  writing: "写作",
+  innovation: "创新",
+  network: "合作",
+  contribution: "贡献",
+};
+
+const INITIAL_STATS = {
+  knowledge: 42,
+  perseverance: 44,
+  focus: 42,
+  health: 72,
+  pressure: 22,
+  eq: 38,
+  money: 16,
+  reputation: 5,
+  literature: 8,
+  experiment: 6,
+  writing: 8,
+  innovation: 7,
+  network: 6,
+  contribution: 0,
+};
 
 const STAGES = [
-  { id: "gaosan", name: "高三备考", years: "高三", rounds: 4, desc: "人生第一场大考" },
-  { id: "benke", name: "本科阶段", years: "大一 - 大四", rounds: 8, desc: "选择比努力更重要" },
+  {
+    id: "high_school",
+    name: "高中",
+    subtitle: "高三冲刺",
+    turns: 8,
+    ap: 6,
+    goal: "考入理想大学，打下长期学习能力。",
+    progress: { exam: "高考准备度" },
+  },
+  {
+    id: "undergraduate",
+    name: "本科",
+    subtitle: "方向选择",
+    turns: 10,
+    ap: 7,
+    goal: "完成专业训练，争取进入科研路线。",
+    progress: { gpa: "学业完成度", research: "科研入门度" },
+  },
+  {
+    id: "master",
+    name: "硕士",
+    subtitle: "科研训练",
+    turns: 10,
+    ap: 8,
+    goal: "完成课题，产出论文，决定是否继续读博。",
+    progress: { project: "课题完成度", paper: "论文进度" },
+  },
 ];
 
 const ACTIONS = {
-  gaosan: [
-    { id: "study", label: "题海战术", icon: "📚", cost: 3, effects: { 智识: 3, 毅力: 1, 压力: 2, 体力: -1 }, desc: "埋头苦刷，智识大增但压力陡升" },
-    { id: "sleep", label: "充足睡眠", icon: "😴", cost: 2, effects: { 体力: 3, 压力: -2, 专注度: 2 }, desc: "睡够了才能学好" },
-    { id: "exercise", label: "操场跑步", icon: "🏃", cost: 2, effects: { 体力: 2, 压力: -1, 毅力: 1 }, desc: "强健体魄，释放压力" },
-    { id: "mock", label: "模拟考试", icon: "📝", cost: 3, effects: { 智识: 2, 压力: 3, 专注度: 1 }, desc: "实战演练，但压力不小" },
-    { id: "relax", label: "适当娱乐", icon: "🎮", cost: 1, effects: { 压力: -3, 体力: 1, 智识: -1 }, desc: "放松一下，但感觉有点罪恶感" },
-    { id: "tutor", label: "请教老师", icon: "👨‍🏫", cost: 2, effects: { 智识: 2, 情商: 1, 压力: -1 }, desc: "老师的点拨往往事半功倍" },
+  high_school: [
+    action("study", "刷题训练", 2, "稳定提升知识，高压但可靠。", { knowledge: 5, focus: 2, pressure: 4, health: -3 }, { exam: 8 }),
+    action("mock", "模拟考试", 3, "用实战暴露短板。", { knowledge: 3, focus: 4, pressure: 6 }, { exam: 12 }),
+    action("teacher", "请教老师", 2, "把卡住的问题讲清楚。", { knowledge: 4, eq: 2, pressure: -2 }, { exam: 6 }),
+    action("exercise", "操场跑步", 2, "恢复身体，也恢复一点信心。", { health: 8, perseverance: 3, pressure: -5 }),
+    action("sleep", "好好睡觉", 1, "专注来自足够的恢复。", { health: 7, focus: 3, pressure: -4 }),
+    action("friends", "和同学聊聊", 1, "别把自己变成孤岛。", { eq: 4, pressure: -3, network: 1 }),
   ],
-  benke: [
-    { id: "class", label: "认真上课", icon: "📖", cost: 2, effects: { 智识: 2, 毅力: 1, 压力: 1 }, desc: "基础知识是科研的根基" },
-    { id: "lab", label: "进实验室", icon: "🔬", cost: 3, effects: { 智识: 2, 声望: 1, 体力: -2, 压力: 2 }, desc: "提前接触科研，但很耗精力" },
-    { id: "social", label: "拓展人脉", icon: "🤝", cost: 2, effects: { 情商: 2, 声望: 1, 压力: -1 }, desc: "认识形形色色的人" },
-    { id: "competition", label: "参加竞赛", icon: "🏆", cost: 3, effects: { 智识: 1, 声望: 2, 压力: 3, 毅力: 2 }, desc: "高风险高回报" },
-    { id: "intern", label: "企业实习", icon: "💼", cost: 3, effects: { 资金: 3, 情商: 1, 声望: 1, 智识: -1 }, desc: "赚点钱，但分了心" },
-    { id: "rest", label: "好好休息", icon: "☕", cost: 1, effects: { 体力: 3, 压力: -3 }, desc: "大学不只有卷" },
-    { id: "read", label: "阅读文献", icon: "📄", cost: 2, effects: { 智识: 3, 毅力: 1, 压力: 1, 体力: -1 }, desc: "站在巨人的肩膀上" },
-    { id: "exercise", label: "健身锻炼", icon: "🏋️", cost: 2, effects: { 体力: 3, 压力: -2, 毅力: 1 }, desc: "身体是革命的本钱" },
+  undergraduate: [
+    action("class", "认真上课", 2, "补齐专业基础。", { knowledge: 4, focus: 2, pressure: 2 }, { gpa: 8 }),
+    action("library", "阅读文献", 2, "第一次看见问题的边界。", { literature: 5, knowledge: 2, pressure: 2 }, { research: 6 }),
+    action("lab", "进入实验室", 3, "提前接触真实科研。", { experiment: 5, reputation: 2, health: -5, pressure: 5 }, { research: 10 }),
+    action("competition", "参加竞赛", 3, "高风险高收益的履历积累。", { perseverance: 4, reputation: 4, pressure: 6 }, { gpa: 4, research: 5 }),
+    action("social", "拓展人脉", 2, "认识同学、师兄师姐和潜在导师。", { eq: 5, network: 4, pressure: -2 }),
+    action("intern", "企业实习", 3, "获得资金和现实感，但会分心。", { money: 8, eq: 2, knowledge: -2, reputation: 1 }),
+    action("rest", "规律休息", 1, "本科不是只有绩点。", { health: 8, pressure: -5, focus: 2 }),
+  ],
+  master: [
+    action("read", "系统读文献", 2, "找到值得做的问题。", { literature: 5, innovation: 2, pressure: 2 }, { project: 5 }),
+    action("experiment", "推进实验", 3, "把想法变成证据。", { experiment: 6, health: -6, pressure: 5 }, { project: 12 }),
+    action("meeting", "组会汇报", 2, "训练表达，也接受质疑。", { writing: 2, eq: 3, reputation: 1, pressure: 3 }, { project: 5 }),
+    action("write", "写论文", 3, "将结果组织成可以被同行理解的贡献。", { writing: 6, focus: 2, pressure: 5 }, { paper: 12 }),
+    action("submit", "投稿尝试", 3, "可能被拒，但不会白费。", { reputation: 2, pressure: 6, contribution: 3 }, { paper: 8 }),
+    action("conference", "参加会议", 3, "看见更大的学术共同体。", { network: 5, reputation: 4, money: -5, eq: 2 }),
+    action("recover", "调整状态", 1, "长期科研需要稳定节奏。", { health: 9, pressure: -7, focus: 2 }),
   ],
 };
 
 const EVENTS = {
-  gaosan: [
-    {
-      id: "e1", title: "月考成绩出炉", desc: "这次月考发挥失常，比预期低了30分。班主任找你谈话，说要保持心态。",
-      choices: [
-        { label: "发奋图强，加倍努力", effects: { 智识: 2, 压力: 3, 毅力: 2 } },
-        { label: "调整心态，平稳应对", effects: { 压力: -2, 专注度: 2, 毅力: 1 } },
-      ]
-    },
-    {
-      id: "e2", title: "好朋友约你出去玩", desc: "高考前夕，好朋友说毕业了大家就散了，趁现在聚一聚。",
-      choices: [
-        { label: "去！友情无价", effects: { 情商: 2, 压力: -2, 智识: -1 } },
-        { label: "拒绝，专心备考", effects: { 智识: 1, 压力: 1, 情商: -1 } },
-      ]
-    },
-    {
-      id: "e3", title: "失眠了", desc: "考前焦虑，凌晨三点盯着天花板，脑子里全是做不完的题。",
-      choices: [
-        { label: "起来继续学习", effects: { 智识: 1, 体力: -3, 压力: 3 } },
-        { label: "强迫自己休息", effects: { 体力: 1, 压力: 1, 专注度: 1 } },
-      ]
-    },
-    {
-      id: "e4", title: "班级学神退步了", desc: "一直吊打全班的学神这次考差了，有人幸灾乐祸，有人担忧。你怎么看？",
-      choices: [
-        { label: "默默加油，超越他的机会来了", effects: { 毅力: 2, 智识: 1 } },
-        { label: "去安慰他，他一定很难受", effects: { 情商: 3, 压力: -1 } },
-      ]
-    },
-    {
-      id: "e5", title: "家长施压", desc: "父母觉得你最近太松懈了，要求你每天汇报学习进度，并给你报了补习班。",
-      choices: [
-        { label: "接受，父母也是为我好", effects: { 智识: 1, 压力: 3, 毅力: 1 } },
-        { label: "沟通，争取自主学习空间", effects: { 情商: 2, 压力: -1, 智识: 1 } },
-      ]
-    },
+  high_school: [
+    event("month_exam", "月考失利", "这次月考比预期低了不少。班主任建议你先稳住节奏。", [
+      choice("加倍刷题", { knowledge: 4, perseverance: 3, pressure: 6 }, { exam: 6 }),
+      choice("复盘错题，降低节奏", { focus: 4, pressure: -4 }, { exam: 4 }),
+    ]),
+    event("parents", "家长施压", "父母给你报了新的补习班，希望每晚汇报学习进度。", [
+      choice("接受安排", { knowledge: 3, pressure: 6 }, { exam: 5 }),
+      choice("认真沟通，争取自主计划", { eq: 4, pressure: -3, focus: 2 }),
+    ]),
+    event("insomnia", "考前失眠", "凌晨三点，你还在想没有做完的题。", [
+      choice("起床继续学", { knowledge: 2, health: -8, pressure: 6 }),
+      choice("强迫自己休息", { health: 4, focus: 2, pressure: 2 }),
+    ]),
   ],
-  benke: [
-    {
-      id: "b1", title: "导师邀请你进组", desc: "一位老师在课后找到你，说你在课上的发言让他印象深刻，邀请你加入他的实验室。",
-      choices: [
-        { label: "立刻加入！机不可失", effects: { 智识: 2, 声望: 2, 体力: -2, 压力: 2 } },
-        { label: "先打听一下再说", effects: { 情商: 1, 智识: 1 } },
-        { label: "婉拒，想先好好享受大学生活", effects: { 体力: 1, 压力: -2 } },
-      ]
-    },
-    {
-      id: "b2", title: "同学的论文发表了", desc: "和你同年入学的同学，大二就在核心期刊发表了论文，朋友圈一片恭喜。你心里……",
-      choices: [
-        { label: "被激励了，找他聊聊怎么做到的", effects: { 智识: 2, 情商: 1, 毅力: 2 } },
-        { label: "有点焦虑，自己好像落后了", effects: { 压力: 3, 智识: 1 } },
-        { label: "真心为他高兴，走自己的路", effects: { 压力: -1, 毅力: 2 } },
-      ]
-    },
-    {
-      id: "b3", title: "保研还是考研？", desc: "大三末，你的绩点可以保研，但你心仪的学校只能考研去，而且风险很大。",
-      choices: [
-        { label: "保研，稳妥为主", effects: { 声望: 1, 压力: -3, 智识: 1 } },
-        { label: "放弃保研，冲击顶校", effects: { 毅力: 3, 压力: 4, 智识: 2 } },
-      ]
-    },
-    {
-      id: "b4", title: "谈恋爱了", desc: "你喜欢上了同班的同学，对方似乎也有意思。但期末考试下周就要来了。",
-      choices: [
-        { label: "勇敢表白，爱情不等人", effects: { 情商: 2, 压力: -2, 智识: -1 } },
-        { label: "考完再说，先把试考好", effects: { 智识: 2, 压力: 1 } },
-      ]
-    },
-    {
-      id: "b5", title: "实验室数据出错了", desc: "你做了一个月的实验，今天发现数据采集方法有根本性错误，一切要重来。",
-      choices: [
-        { label: "崩溃一会儿，然后重新开始", effects: { 毅力: 3, 压力: 3, 智识: 1 } },
-        { label: "找老师求助，看能否补救", effects: { 情商: 2, 智识: 1, 压力: 2 } },
-        { label: "质疑自己是否适合科研", effects: { 压力: 4, 毅力: -1 } },
-      ]
-    },
-    {
-      id: "b6", title: "暑假大厂实习机会", desc: "字节/腾讯给了你一个暑期实习offer，月薪2万。但你原定暑假做科研项目。",
-      choices: [
-        { label: "去实习！钱和经验都要", effects: { 资金: 4, 情商: 1, 智识: -1, 声望: 1 } },
-        { label: "坚持做科研，学术路才刚开始", effects: { 智识: 2, 毅力: 2, 声望: 1 } },
-      ]
-    },
+  undergraduate: [
+    event("mentor_invite", "导师邀请", "一位老师课后邀请你加入课题组。", [
+      choice("立刻加入", { experiment: 5, reputation: 3, health: -4, pressure: 4 }, { research: 8 }),
+      choice("先打听课题组情况", { eq: 3, network: 3, literature: 2 }),
+      choice("暂时拒绝", { health: 3, pressure: -3 }),
+    ]),
+    event("paper_peer", "同学提前发论文", "同级同学发表了第一篇论文，朋友圈都在祝贺。", [
+      choice("找他请教经验", { knowledge: 2, eq: 3, literature: 3 }),
+      choice("焦虑但开始追赶", { pressure: 5, perseverance: 4 }, { research: 5 }),
+      choice("坚持自己的节奏", { pressure: -3, focus: 3 }),
+    ]),
+    event("major_doubt", "专业兴趣动摇", "你发现自己并不确定是否喜欢当前方向。", [
+      choice("跨方向旁听", { innovation: 4, knowledge: 2, pressure: 2 }),
+      choice("先把当前专业学扎实", { focus: 4, knowledge: 3 }, { gpa: 5 }),
+    ]),
+  ],
+  master: [
+    event("bad_data", "数据出错", "做了一个月的实验发现采集方法有根本错误。", [
+      choice("重做并写清记录", { perseverance: 5, experiment: 3, pressure: 5 }, { project: 4 }),
+      choice("找导师讨论补救", { eq: 4, network: 2, pressure: 2 }, { project: 6 }),
+      choice("怀疑自己是否适合科研", { pressure: 7, perseverance: -3 }),
+    ]),
+    event("review", "审稿意见大修", "审稿人认可问题，但要求补充大量实验。", [
+      choice("补实验再投", { experiment: 4, writing: 3, pressure: 6 }, { paper: 8 }),
+      choice("改投更合适的期刊", { writing: 4, pressure: 2 }, { paper: 5 }),
+    ]),
+    event("phd_choice", "读博还是就业", "导师问你是否愿意继续读博，同学也在准备秋招。", [
+      choice("明确继续科研", { contribution: 5, reputation: 3, pressure: 4 }),
+      choice("保留就业选项", { money: 5, eq: 2, pressure: -2 }),
+    ]),
   ],
 };
-
-const GAOKAO_RESULTS = [
-  { min: 85, label: "清北复交", desc: "考入顶尖高校，未来资源丰厚", bonus: { 智识: 5, 声望: 5 } },
-  { min: 70, label: "985高校", desc: "实力强校，平台不错", bonus: { 智识: 3, 声望: 3 } },
-  { min: 55, label: "211高校", desc: "稳健起步，靠自己发光", bonus: { 智识: 2, 声望: 1 } },
-  { min: 0, label: "普通本科", desc: "平台一般，但人生从不只看第一步", bonus: { 毅力: 2 } },
-];
 
 const ENDINGS = [
   {
-    id: "genius", title: "🏆 天才学者", condition: s => s.智识 >= 28 && s.声望 >= 15,
-    desc: "你的名字将出现在教科书里。不是每个人都能走到这一步，而你做到了。代价嘛——你已经记不清上次睡个好觉是什么时候了。",
-    color: "#FFD700"
+    id: "phd",
+    title: "顺利读博",
+    test: (s, p) => p.paper >= 70 && p.project >= 70 && s.reputation >= 30,
+    text: "你带着代表作和清晰的问题意识进入博士阶段，真正的科研长跑开始了。",
   },
   {
-    id: "balanced", title: "⚖️ 平衡的人", condition: s => s.情商 >= 15 && s.体力 >= 15 && s.压力 <= 20,
-    desc: "你没有顶级的论文，但你有真心的朋友、健康的身体、和一份真正热爱的工作。也许这才是最难的成就。",
-    color: "#4ECDC4"
+    id: "industry",
+    title: "转向产业研发",
+    test: (s) => s.money >= 35 && s.eq >= 48,
+    text: "你保留科研训练带来的严谨，也选择把问题带到产业现场解决。",
   },
   {
-    id: "industry", title: "💼 科技创业者", condition: s => s.资金 >= 12 && s.情商 >= 12,
-    desc: "你用科研思维做了一家公司。同学们还在发论文的时候，你已经在思考如何改变世界了。",
-    color: "#FF6B6B"
+    id: "burnout",
+    title: "科研受挫",
+    test: (s) => s.pressure >= 85 || s.health <= 12,
+    text: "你走得太急，身体和心理先提出了抗议。暂停并不是失败，但这条路暂时走不下去了。",
   },
   {
-    id: "burnout", title: "😮‍💨 提前退场", condition: s => s.压力 >= 35,
-    desc: "某一天你突然明白，不是所有人都应该留在学术界。你离开了，然后发现外面的世界其实挺大的。",
-    color: "#95A5A6"
-  },
-  {
-    id: "ordinary", title: "🌱 普通而完整", condition: () => true,
-    desc: "没有传奇，没有大奖。但你认真地过了每一天，这本身就是一种了不起的事情。",
-    color: "#A8E6CF"
+    id: "steady",
+    title: "稳健毕业",
+    test: () => true,
+    text: "你完成了硕士训练，理解了科研的真实质地。下一步仍有许多可能。",
   },
 ];
 
-const INITIAL_STATS = {
-  智识: 10, 毅力: 10, 情商: 8, 体力: 15,
-  专注度: 10, 压力: 5, 资金: 5, 声望: 0,
-};
+function action(id, name, cost, desc, effects, progress = {}) {
+  return { id, name, cost, desc, effects, progress };
+}
 
-// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+function event(id, title, desc, choices) {
+  return { id, title, desc, choices };
+}
 
-function StatBar({ label, value, max = 40, color }) {
-  const pct = Math.min(100, Math.max(0, (value / max) * 100));
-  const isWarning = label === "压力" && value > 25;
+function choice(label, effects, progress = {}) {
+  return { label, effects, progress };
+}
+
+function clamp(value, min = 0, max = 100) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function applyDelta(source, delta, max = 100) {
+  const next = { ...source };
+  Object.entries(delta).forEach(([key, value]) => {
+    next[key] = clamp((next[key] ?? 0) + value, 0, max);
+  });
+  return next;
+}
+
+function createInitialGame() {
+  return {
+    screen: "intro",
+    stageIndex: 0,
+    turn: 1,
+    ap: STAGES[0].ap,
+    stats: INITIAL_STATS,
+    progress: { exam: 0, gpa: 0, research: 0, project: 0, paper: 0 },
+    usedEvents: [],
+    activeEvent: null,
+    ending: null,
+    logs: ["高三开始了。你把目标写在便签上：先考上一所好大学。"],
+  };
+}
+
+function formatDelta(delta) {
+  return Object.entries(delta)
+    .map(([key, value]) => `${STAT_LABELS[key] ?? key}${value > 0 ? "+" : ""}${value}`)
+    .join("，");
+}
+
+function pickEvent(game) {
+  const stage = STAGES[game.stageIndex];
+  const pool = EVENTS[stage.id].filter((item) => !game.usedEvents.includes(item.id));
+  if (!pool.length) return null;
+  const pressureBoost = game.stats.pressure > 70 ? 0.25 : 0;
+  if (Math.random() > 0.42 + pressureBoost) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function getEnding(stats, progress) {
+  return ENDINGS.find((ending) => ending.test(stats, progress));
+}
+
+function App() {
+  const [game, setGame] = useState(() => {
+    try {
+      const saved = localStorage.getItem(SAVE_KEY);
+      return saved ? JSON.parse(saved) : createInitialGame();
+    } catch {
+      return createInitialGame();
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+  }, [game]);
+
+  const stage = STAGES[game.stageIndex];
+  const actions = ACTIONS[stage.id];
+  const statGroups = useMemo(
+    () => [
+      ["knowledge", "perseverance", "focus", "health", "pressure", "eq", "money", "reputation"],
+      ["literature", "experiment", "writing", "innovation", "network", "contribution"],
+    ],
+    [],
+  );
+
+  function startGame() {
+    setGame({ ...createInitialGame(), screen: "play" });
+  }
+
+  function resetGame() {
+    localStorage.removeItem(SAVE_KEY);
+    setGame(createInitialGame());
+  }
+
+  function performAction(item) {
+    if (game.ap < item.cost || game.activeEvent || game.ending) return;
+    setGame((current) => {
+      const stats = applyDelta(current.stats, item.effects);
+      const progress = applyDelta(current.progress, item.progress);
+      const log = `${stage.name} 第${current.turn}回合：${item.name}。${formatDelta(item.effects)}`;
+      return {
+        ...current,
+        ap: current.ap - item.cost,
+        stats,
+        progress,
+        logs: [log, ...current.logs].slice(0, 80),
+      };
+    });
+  }
+
+  function endTurn() {
+    if (game.activeEvent || game.ending) return;
+    setGame((current) => {
+      const currentStage = STAGES[current.stageIndex];
+      const event = pickEvent(current);
+      const recovery = current.stats.health < 20 ? -2 : 0;
+      const nextStats = applyDelta(current.stats, {
+        health: current.stats.health < 30 ? 3 : 1,
+        pressure: current.stats.pressure > 65 ? 1 : -1,
+      });
+
+      if (event) {
+        return {
+          ...current,
+          stats: nextStats,
+          activeEvent: event,
+          usedEvents: [...current.usedEvents, event.id],
+          logs: [`触发事件：${event.title}`, ...current.logs].slice(0, 80),
+        };
+      }
+
+      if (current.turn >= currentStage.turns) {
+        return settleStage({ ...current, stats: nextStats });
+      }
+
+      return {
+        ...current,
+        stats: nextStats,
+        turn: current.turn + 1,
+        ap: Math.max(3, currentStage.ap + recovery),
+        logs: [`进入${currentStage.name}第${current.turn + 1}回合。`, ...current.logs].slice(0, 80),
+      };
+    });
+  }
+
+  function settleStage(current) {
+    if (current.stageIndex === STAGES.length - 1) {
+      const ending = getEnding(current.stats, current.progress);
+      return {
+        ...current,
+        ending,
+        logs: [`结局：${ending.title}`, ...current.logs].slice(0, 80),
+      };
+    }
+
+    const finished = STAGES[current.stageIndex];
+    const nextStage = STAGES[current.stageIndex + 1];
+    const bonus = stageBonus(finished.id, current.stats, current.progress);
+    const stats = applyDelta(current.stats, bonus.effects);
+    return {
+      ...current,
+      stageIndex: current.stageIndex + 1,
+      turn: 1,
+      ap: nextStage.ap,
+      stats,
+      logs: [`阶段结算：${bonus.text}`, `进入${nextStage.name}阶段：${nextStage.goal}`, ...current.logs].slice(0, 80),
+    };
+  }
+
+  function chooseEvent(option) {
+    setGame((current) => {
+      const stats = applyDelta(current.stats, option.effects);
+      const progress = applyDelta(current.progress, option.progress);
+      return {
+        ...current,
+        stats,
+        progress,
+        activeEvent: null,
+        logs: [`事件选择：${option.label}。${formatDelta(option.effects)}`, ...current.logs].slice(0, 80),
+      };
+    });
+  }
+
+  if (game.screen === "intro") {
+    return (
+      <main className="intro">
+        <section className="intro-hero">
+          <div>
+            <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
+            <h1>科研之路</h1>
+            <p className="intro-copy">
+              从高中开始，在考试、专业选择、实验室、论文和压力之间做长期取舍。首版目标是走完高中、本科和硕士，争取进入博士阶段。
+            </p>
+            <div className="intro-actions">
+              <button className="primary" onClick={startGame}>开始新游戏</button>
+              <button className="secondary" onClick={() => setGame((current) => ({ ...current, screen: "play" }))}>
+                继续存档
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <div style={{ marginBottom: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3, fontFamily: "'Noto Serif SC', serif", color: isWarning ? "#FF6B6B" : "#c9b99a" }}>
-        <span>{label}{isWarning ? " ⚠️" : ""}</span>
-        <span style={{ fontVariantNumeric: "tabular-nums" }}>{value}</span>
+    <main className="app-shell">
+      <header className="topbar">
+        <div>
+          <p className="eyebrow">{stage.subtitle}</p>
+          <h1>科研之路</h1>
+        </div>
+        <div className="top-actions">
+          <button className="secondary" onClick={resetGame}>重新开始</button>
+        </div>
+      </header>
+
+      <section className="status-band">
+        <div>
+          <span>阶段</span>
+          <strong>{stage.name}</strong>
+        </div>
+        <div>
+          <span>回合</span>
+          <strong>{game.turn} / {stage.turns}</strong>
+        </div>
+        <div>
+          <span>行动点</span>
+          <strong>{game.ap}</strong>
+        </div>
+        <div className="goal">
+          <span>阶段目标</span>
+          <strong>{stage.goal}</strong>
+        </div>
+      </section>
+
+      <div className="game-grid">
+        <aside className="panel stats-panel">
+          <h2>角色状态</h2>
+          {statGroups.map((group, index) => (
+            <div className="stat-group" key={index}>
+              {group.map((key) => (
+                <StatBar key={key} label={STAT_LABELS[key]} value={game.stats[key]} danger={key === "pressure"} />
+              ))}
+            </div>
+          ))}
+        </aside>
+
+        <section className="main-column">
+          <div className="panel progress-panel">
+            <h2>阶段进度</h2>
+            <div className="progress-list">
+              {Object.entries(stage.progress).map(([key, label]) => (
+                <ProgressBar key={key} label={label} value={game.progress[key]} />
+              ))}
+            </div>
+          </div>
+
+          <div className="panel action-panel">
+            <div className="panel-heading">
+              <h2>本回合行动</h2>
+              <button className="primary compact" onClick={endTurn} disabled={!!game.activeEvent || !!game.ending}>
+                结束回合
+              </button>
+            </div>
+            <div className="actions-grid">
+              {actions.map((item) => (
+                <button
+                  className="action-card"
+                  key={item.id}
+                  disabled={game.ap < item.cost || !!game.activeEvent || !!game.ending}
+                  onClick={() => performAction(item)}
+                >
+                  <div className="action-title">
+                    <strong>{item.name}</strong>
+                    <span>{item.cost} AP</span>
+                  </div>
+                  <p>{item.desc}</p>
+                  <EffectChips effects={item.effects} progress={item.progress} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <aside className="panel log-panel">
+          <h2>记录</h2>
+          <div className="log-list">
+            {game.logs.map((item, index) => (
+              <p key={`${item}-${index}`}>{item}</p>
+            ))}
+          </div>
+        </aside>
       </div>
-      <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{
-          height: "100%", width: `${pct}%`, borderRadius: 3,
-          background: isWarning ? "linear-gradient(90deg, #FF6B6B, #FF9999)" : color,
-          transition: "width 0.5s cubic-bezier(.4,0,.2,1)",
-          boxShadow: isWarning ? "0 0 8px rgba(255,107,107,0.5)" : "none"
-        }} />
+
+      {game.activeEvent && (
+        <EventModal event={game.activeEvent} onChoose={chooseEvent} />
+      )}
+
+      {game.ending && (
+        <div className="modal-backdrop">
+          <section className="modal">
+            <p className="eyebrow">当前版本结局</p>
+            <h2>{game.ending.title}</h2>
+            <p>{game.ending.text}</p>
+            <button className="primary" onClick={resetGame}>再走一次</button>
+          </section>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function stageBonus(stageId, stats, progress) {
+  if (stageId === "high_school") {
+    const score = progress.exam * 0.55 + stats.knowledge * 0.25 + stats.focus * 0.15 - stats.pressure * 0.08;
+    if (score >= 78) return { text: "你考入顶尖高校，获得更好的平台资源。", effects: { reputation: 8, knowledge: 5, network: 4 } };
+    if (score >= 62) return { text: "你进入一所不错的大学，科研道路正式打开。", effects: { reputation: 4, knowledge: 3 } };
+    return { text: "高考结果普通，但你保留了韧性和继续向上的空间。", effects: { perseverance: 5, pressure: -4 } };
+  }
+
+  const readiness = progress.gpa * 0.35 + progress.research * 0.45 + stats.reputation * 0.2;
+  if (readiness >= 70) return { text: "你获得优秀导师认可，带着明确方向进入硕士阶段。", effects: { reputation: 6, literature: 4, network: 4 } };
+  if (readiness >= 48) return { text: "你拿到升学机会，但仍需要补足科研基本功。", effects: { literature: 3, experiment: 2 } };
+  return { text: "你勉强进入科研训练，压力和不确定性都更高了。", effects: { pressure: 6, perseverance: 3 } };
+}
+
+function StatBar({ label, value, danger }) {
+  const pct = clamp(value);
+  const alert = danger ? value >= 75 : value <= 18;
+  return (
+    <div className="stat-row">
+      <div className="stat-meta">
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <div className="meter">
+        <div
+          className={danger ? "meter-fill pressure" : alert ? "meter-fill alert" : "meter-fill"}
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   );
 }
 
-function StatDelta({ effects }) {
+function ProgressBar({ label, value }) {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
-      {Object.entries(effects).map(([k, v]) => (
-        <span key={k} style={{
-          fontSize: 10, padding: "1px 6px", borderRadius: 10,
-          background: v > 0 ? "rgba(78,205,196,0.15)" : "rgba(255,107,107,0.15)",
-          color: v > 0 ? "#4ECDC4" : "#FF8A80",
-          border: `1px solid ${v > 0 ? "rgba(78,205,196,0.3)" : "rgba(255,107,107,0.3)"}`,
-          fontFamily: "monospace"
-        }}>
-          {k} {v > 0 ? "+" : ""}{v}
+    <div className="progress-row">
+      <div className="stat-meta">
+        <span>{label}</span>
+        <strong>{value}%</strong>
+      </div>
+      <div className="meter large">
+        <div className="meter-fill progress" style={{ width: `${clamp(value)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function EffectChips({ effects, progress }) {
+  return (
+    <div className="chips">
+      {Object.entries({ ...effects, ...progress }).map(([key, value]) => (
+        <span className={value >= 0 ? "chip up" : "chip down"} key={key}>
+          {STAT_LABELS[key] ?? key}{value > 0 ? "+" : ""}{value}
         </span>
       ))}
     </div>
   );
 }
 
-function Toast({ message, onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 2000); return () => clearTimeout(t); }, []);
+function EventModal({ event, onChoose }) {
   return (
-    <div style={{
-      position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
-      background: "rgba(30,24,16,0.97)", border: "1px solid rgba(201,185,154,0.4)",
-      borderRadius: 10, padding: "10px 20px", color: "#c9b99a",
-      fontFamily: "'Noto Serif SC', serif", fontSize: 13, zIndex: 9999,
-      boxShadow: "0 8px 32px rgba(0,0,0,0.5)", animation: "fadeIn 0.3s ease"
-    }}>
-      {message}
+    <div className="modal-backdrop">
+      <section className="modal">
+        <p className="eyebrow">突发事件</p>
+        <h2>{event.title}</h2>
+        <p>{event.desc}</p>
+        <div className="choice-list">
+          {event.choices.map((item) => (
+            <button className="choice-button" key={item.label} onClick={() => onChoose(item)}>
+              <span>{item.label}</span>
+              <EffectChips effects={item.effects} progress={item.progress} />
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
 
-// ─── MAIN GAME ────────────────────────────────────────────────────────────────
-
-export default function App() {
-  const [screen, setScreen] = useState("intro"); // intro | game | event | gaokao | stage_end | ending
-  const [stageIdx, setStageIdx] = useState(0);
-  const [round, setRound] = useState(1);
-  const [ap, setAp] = useState(10); // action points
-  const [stats, setStats] = useState({ ...INITIAL_STATS });
-  const [statDeltas, setStatDeltas] = useState({});
-  const [event, setEvent] = useState(null);
-  const [log, setLog] = useState([]);
-  const [gaokaoScore, setGaokaoScore] = useState(null);
-  const [schoolResult, setSchoolResult] = useState(null);
-  const [ending, setEnding] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [animKey, setAnimKey] = useState(0);
-  const logRef = useRef();
-
-  const stage = STAGES[stageIdx];
-  const actions = ACTIONS[stage?.id] || [];
-  const totalRounds = stage?.rounds || 4;
-
-  function addLog(msg) {
-    setLog(prev => [...prev.slice(-30), { msg, time: Date.now() }]);
-    setTimeout(() => logRef.current?.scrollTo({ top: 99999, behavior: "smooth" }), 50);
-  }
-
-  function applyEffects(effects, source = "") {
-    const deltas = {};
-    setStats(prev => {
-      const next = { ...prev };
-      Object.entries(effects).forEach(([k, v]) => {
-        next[k] = Math.max(0, Math.min(50, (next[k] || 0) + v));
-        deltas[k] = v;
-      });
-      return next;
-    });
-    setStatDeltas(deltas);
-    setTimeout(() => setStatDeltas({}), 1500);
-    if (source) addLog(source);
-  }
-
-  function doAction(action) {
-    if (ap < action.cost) { setToast("行动点不足！"); return; }
-    setAp(p => p - action.cost);
-    applyEffects(action.effects, `✅ ${action.label}：${action.desc}`);
-    setAnimKey(k => k + 1);
-  }
-
-  function triggerRandomEvent() {
-    const pool = EVENTS[stage.id] || [];
-    const e = pool[Math.floor(Math.random() * pool.length)];
-    setEvent(e);
-    setScreen("event");
-  }
-
-  function chooseEvent(choice) {
-    applyEffects(choice.effects, `📌 你选择了「${choice.label}」`);
-    setEvent(null);
-    setScreen("game");
-    nextRound();
-  }
-
-  function nextRound() {
-    const nextRound = round + 1;
-    if (nextRound > totalRounds) {
-      // stage end
-      if (stageIdx === 0) {
-        // gaokao!
-        const score = Math.min(100, Math.max(20, Math.round(stats.智识 * 2.2 + stats.专注度 * 1.5 - stats.压力 * 0.8 + Math.random() * 15)));
-        setGaokaoScore(score);
-        const res = GAOKAO_RESULTS.find(r => score >= r.min);
-        setSchoolResult(res);
-        applyEffects(res.bonus, `🎓 高考结束！考入${res.label}`);
-        setScreen("gaokao");
-      } else {
-        // end game
-        const end = ENDINGS.find(e => e.condition(stats)) || ENDINGS[ENDINGS.length - 1];
-        setEnding(end);
-        setScreen("ending");
-      }
-    } else {
-      setRound(nextRound);
-      setAp(10);
-      addLog(`─── 第${nextRound}回合开始 ───`);
-      // random event every 2 rounds
-      if (nextRound % 2 === 0) {
-        setTimeout(triggerRandomEvent, 300);
-      }
-    }
-  }
-
-  function endTurn() {
-    addLog(`📅 结束本回合（剩余${ap}点行动力）`);
-    if (round % 2 !== 0) nextRound();
-    else triggerRandomEvent();
-  }
-
-  function startBenke() {
-    setStageIdx(1);
-    setRound(1);
-    setAp(10);
-    addLog("─── 本科阶段开始 ───");
-    setScreen("game");
-  }
-
-  // ── SCREENS ──
-
-  const bg = "radial-gradient(ellipse at 20% 50%, #1a1205 0%, #0d0c08 60%, #050505 100%)";
-  const cardBg = "rgba(255,255,255,0.03)";
-  const border = "1px solid rgba(201,185,154,0.12)";
-  const gold = "#c9b99a";
-  const accent = "#e8d5a0";
-
-  if (screen === "intro") return (
-    <div style={{ minHeight: "100vh", background: bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes pulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
-        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        ::-webkit-scrollbar { width:4px } ::-webkit-scrollbar-track { background:transparent } ::-webkit-scrollbar-thumb { background:rgba(201,185,154,0.2); border-radius:2px }
-      `}</style>
-      <div style={{ maxWidth: 480, width: "100%", textAlign: "center", animation: "fadeIn 0.8s ease" }}>
-        <div style={{ fontSize: 64, marginBottom: 16, filter: "drop-shadow(0 0 30px rgba(200,180,100,0.3))" }}>🎓</div>
-        <h1 style={{
-          fontFamily: "'Noto Serif SC', serif", fontSize: 36, fontWeight: 700,
-          background: "linear-gradient(135deg, #c9b99a, #f0e0b0, #c9b99a) 200% center / 200%",
-          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          animation: "shimmer 3s linear infinite", marginBottom: 8, letterSpacing: 4
-        }}>我的科研之路</h1>
-        <p style={{ color: "rgba(201,185,154,0.5)", fontFamily: "'Noto Serif SC', serif", fontSize: 13, marginBottom: 40, letterSpacing: 2 }}>
-          从高考到退休 · 每个选择都算数
-        </p>
-        <div style={{ background: cardBg, border, borderRadius: 16, padding: 24, marginBottom: 32, textAlign: "left" }}>
-          <p style={{ color: gold, fontFamily: "'Noto Serif SC', serif", fontSize: 13, lineHeight: 2, margin: 0 }}>
-            你将经历<strong style={{ color: accent }}> 高三备考 → 本科 → 读研 → 青年学者 → 退休</strong> 的完整人生。<br/>
-            每个回合分配有限的行动力，做出选择，应对随机事件。<br/>
-            最终，你的人生将走向哪个结局？
-          </p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 32 }}>
-          {[["📚","智识"],["💪","毅力"],["😊","情商"],["❤️","体力"]].map(([icon,name]) => (
-            <div key={name} style={{ background: cardBg, border, borderRadius: 10, padding: "10px 4px", textAlign: "center" }}>
-              <div style={{ fontSize: 20 }}>{icon}</div>
-              <div style={{ color: gold, fontSize: 11, fontFamily: "'Noto Serif SC', serif", marginTop: 4 }}>{name}</div>
-            </div>
-          ))}
-        </div>
-        <button onClick={() => { setScreen("game"); addLog("─── 高三备考开始 ───"); }} style={{
-          width: "100%", padding: "14px 0", borderRadius: 12, border: "1px solid rgba(201,185,154,0.4)",
-          background: "linear-gradient(135deg, rgba(201,185,154,0.1), rgba(201,185,154,0.05))",
-          color: accent, fontFamily: "'Noto Serif SC', serif", fontSize: 16, cursor: "pointer",
-          letterSpacing: 4, transition: "all 0.3s"
-        }} onMouseOver={e => e.target.style.background = "rgba(201,185,154,0.15)"}
-           onMouseOut={e => e.target.style.background = "linear-gradient(135deg, rgba(201,185,154,0.1), rgba(201,185,154,0.05))"}>
-          开始你的人生
-        </button>
-      </div>
-    </div>
-  );
-
-  if (screen === "gaokao") return (
-    <div style={{ minHeight: "100vh", background: bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap'); * { box-sizing:border-box } @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} } @keyframes countUp { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }`}</style>
-      <div style={{ maxWidth: 440, width: "100%", textAlign: "center", animation: "fadeIn 0.6s ease" }}>
-        <div style={{ fontSize: 60, marginBottom: 20 }}>📋</div>
-        <h2 style={{ fontFamily: "'Noto Serif SC', serif", color: accent, fontSize: 28, marginBottom: 8, letterSpacing: 3 }}>高考结束了</h2>
-        <div style={{ background: cardBg, border, borderRadius: 20, padding: 32, marginBottom: 24 }}>
-          <div style={{ fontSize: 72, fontWeight: 700, color: accent, fontFamily: "monospace", animation: "countUp 0.8s cubic-bezier(.4,0,.2,1)", lineHeight: 1 }}>
-            {gaokaoScore}
-          </div>
-          <div style={{ color: "rgba(201,185,154,0.5)", fontSize: 12, marginTop: 4, marginBottom: 20, fontFamily: "'Noto Serif SC', serif" }}>综合评分（满分100）</div>
-          <div style={{ background: "rgba(201,185,154,0.08)", borderRadius: 12, padding: 16 }}>
-            <div style={{ color: accent, fontFamily: "'Noto Serif SC', serif", fontSize: 18, fontWeight: 600, marginBottom: 6 }}>{schoolResult?.label}</div>
-            <div style={{ color: "rgba(201,185,154,0.6)", fontFamily: "'Noto Serif SC', serif", fontSize: 13 }}>{schoolResult?.desc}</div>
-          </div>
-        </div>
-        <p style={{ color: "rgba(201,185,154,0.4)", fontSize: 12, fontFamily: "'Noto Serif SC', serif", marginBottom: 24 }}>
-          人生的第一个节点，但绝不是最后的定论。
-        </p>
-        <button onClick={startBenke} style={{
-          width: "100%", padding: "14px 0", borderRadius: 12, border: "1px solid rgba(201,185,154,0.4)",
-          background: "rgba(201,185,154,0.08)", color: accent,
-          fontFamily: "'Noto Serif SC', serif", fontSize: 15, cursor: "pointer", letterSpacing: 3
-        }}>
-          迈入大学校门 →
-        </button>
-      </div>
-    </div>
-  );
-
-  if (screen === "event" && event) return (
-    <div style={{ minHeight: "100vh", background: bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap'); * { box-sizing:border-box } @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }`}</style>
-      <div style={{ maxWidth: 480, width: "100%", animation: "fadeIn 0.5s ease" }}>
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <span style={{ background: "rgba(255,200,100,0.1)", border: "1px solid rgba(255,200,100,0.3)", borderRadius: 20, padding: "4px 14px", color: "#f0c060", fontSize: 11, fontFamily: "'Noto Serif SC', serif" }}>⚡ 随机事件</span>
-        </div>
-        <div style={{ background: cardBg, border, borderRadius: 20, padding: 28, marginBottom: 20 }}>
-          <h3 style={{ fontFamily: "'Noto Serif SC', serif", color: accent, fontSize: 20, marginBottom: 12, textAlign: "center" }}>{event.title}</h3>
-          <p style={{ color: gold, fontFamily: "'Noto Serif SC', serif", fontSize: 14, lineHeight: 1.9, textAlign: "center", margin: 0 }}>{event.desc}</p>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {event.choices.map((c, i) => (
-            <button key={i} onClick={() => chooseEvent(c)} style={{
-              padding: "16px 20px", borderRadius: 14, border: "1px solid rgba(201,185,154,0.2)",
-              background: "rgba(255,255,255,0.03)", color: gold, fontFamily: "'Noto Serif SC', serif",
-              fontSize: 14, cursor: "pointer", textAlign: "left", transition: "all 0.2s"
-            }} onMouseOver={e => e.currentTarget.style.background = "rgba(201,185,154,0.08)"}
-               onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>
-              <div style={{ marginBottom: 6 }}>「{c.label}」</div>
-              <StatDelta effects={c.effects} />
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  if (screen === "ending" && ending) return (
-    <div style={{ minHeight: "100vh", background: bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap'); * { box-sizing:border-box } @keyframes fadeIn { from{opacity:0} to{opacity:1} } @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }`}</style>
-      <div style={{ maxWidth: 480, width: "100%", textAlign: "center", animation: "fadeIn 1s ease" }}>
-        <div style={{ fontSize: 72, marginBottom: 20 }}>{ending.title.split(" ")[0]}</div>
-        <h2 style={{
-          fontFamily: "'Noto Serif SC', serif", fontSize: 28, fontWeight: 700, marginBottom: 24,
-          background: `linear-gradient(135deg, ${ending.color}, #ffffff, ${ending.color}) 200% center / 200%`,
-          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          animation: "shimmer 3s linear infinite"
-        }}>{ending.title.split(" ").slice(1).join(" ")}</h2>
-        <div style={{ background: cardBg, border, borderRadius: 20, padding: 28, marginBottom: 32 }}>
-          <p style={{ color: gold, fontFamily: "'Noto Serif SC', serif", fontSize: 15, lineHeight: 2, margin: 0 }}>{ending.desc}</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 32 }}>
-          {[["智识",stats.智识,"#4ECDC4"],["毅力",stats.毅力,"#FFD93D"],["情商",stats.情商,"#FF6B9D"],["体力",stats.体力,"#6BCB77"]].map(([k,v,c]) => (
-            <div key={k} style={{ background: cardBg, border, borderRadius: 12, padding: 12 }}>
-              <div style={{ color: c, fontSize: 20, fontWeight: 700, fontFamily: "monospace" }}>{v}</div>
-              <div style={{ color: "rgba(201,185,154,0.5)", fontSize: 11, fontFamily: "'Noto Serif SC', serif" }}>{k}</div>
-            </div>
-          ))}
-        </div>
-        <button onClick={() => { setStats({...INITIAL_STATS}); setStageIdx(0); setRound(1); setAp(10); setLog([]); setEnding(null); setGaokaoScore(null); setSchoolResult(null); setScreen("intro"); }} style={{
-          width: "100%", padding: "14px 0", borderRadius: 12, border: "1px solid rgba(201,185,154,0.4)",
-          background: "rgba(201,185,154,0.08)", color: accent,
-          fontFamily: "'Noto Serif SC', serif", fontSize: 15, cursor: "pointer", letterSpacing: 3
-        }}>重走一次人生</button>
-      </div>
-    </div>
-  );
-
-  // MAIN GAME SCREEN
-  return (
-    <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Noto Serif SC', serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
-        * { box-sizing:border-box }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes bump { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
-        ::-webkit-scrollbar { width:4px } ::-webkit-scrollbar-track { background:transparent } ::-webkit-scrollbar-thumb { background:rgba(201,185,154,0.2); border-radius:2px }
-      `}</style>
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
-
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "16px 12px" }}>
-
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, padding: "12px 16px", background: cardBg, borderRadius: 14, border }}>
-          <div>
-            <div style={{ color: accent, fontSize: 15, fontWeight: 600, letterSpacing: 2 }}>{stage.name}</div>
-            <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 11, marginTop: 2 }}>{stage.desc}</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 10 }}>回合</div>
-              <div style={{ color: accent, fontSize: 18, fontWeight: 700, lineHeight: 1 }}>{round}/{totalRounds}</div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 10 }}>行动力</div>
-              <div style={{ color: ap <= 2 ? "#FF6B6B" : "#4ECDC4", fontSize: 18, fontWeight: 700, lineHeight: 1 }}>{ap}</div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 12 }}>
-
-          {/* Stats Panel */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ background: cardBg, border, borderRadius: 14, padding: 16 }}>
-              <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 10, marginBottom: 10, letterSpacing: 2 }}>基础能力</div>
-              <StatBar label="智识" value={stats.智识} color="linear-gradient(90deg,#4ECDC4,#45B7D1)" />
-              <StatBar label="毅力" value={stats.毅力} color="linear-gradient(90deg,#FFD93D,#FF9500)" />
-              <StatBar label="情商" value={stats.情商} color="linear-gradient(90deg,#FF6B9D,#FF8E8E)" />
-              <StatBar label="体力" value={stats.体力} color="linear-gradient(90deg,#6BCB77,#4CAF50)" />
-            </div>
-            <div style={{ background: cardBg, border, borderRadius: 14, padding: 16 }}>
-              <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 10, marginBottom: 10, letterSpacing: 2 }}>即时状态</div>
-              <StatBar label="专注度" value={stats.专注度} color="linear-gradient(90deg,#A78BFA,#7C3AED)" />
-              <StatBar label="压力" value={stats.压力} max={40} color="linear-gradient(90deg,#FB923C,#EF4444)" />
-              <StatBar label="资金" value={stats.资金} color="linear-gradient(90deg,#FCD34D,#F59E0B)" />
-              <StatBar label="声望" value={stats.声望} color="linear-gradient(90deg,#F472B6,#EC4899)" />
-            </div>
-
-            {/* End Turn Button */}
-            <button onClick={endTurn} style={{
-              padding: "12px 0", borderRadius: 12, border: "1px solid rgba(201,185,154,0.3)",
-              background: "rgba(201,185,154,0.06)", color: accent, fontSize: 13,
-              cursor: "pointer", letterSpacing: 2, transition: "all 0.2s"
-            }} onMouseOver={e => e.currentTarget.style.background = "rgba(201,185,154,0.12)"}
-               onMouseOut={e => e.currentTarget.style.background = "rgba(201,185,154,0.06)"}>
-              结束回合 →
-            </button>
-          </div>
-
-          {/* Right Panel */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* Actions */}
-            <div style={{ background: cardBg, border, borderRadius: 14, padding: 16 }}>
-              <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 10, marginBottom: 12, letterSpacing: 2 }}>本回合行动（剩余 {ap} 点行动力）</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8 }} key={animKey}>
-                {actions.map((a, i) => {
-                  const canDo = ap >= a.cost;
-                  return (
-                    <button key={a.id} onClick={() => doAction(a)} disabled={!canDo} style={{
-                      padding: "12px 12px", borderRadius: 12,
-                      border: canDo ? "1px solid rgba(201,185,154,0.2)" : "1px solid rgba(201,185,154,0.06)",
-                      background: canDo ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.2)",
-                      color: canDo ? gold : "rgba(201,185,154,0.25)",
-                      cursor: canDo ? "pointer" : "not-allowed",
-                      textAlign: "left", transition: "all 0.2s",
-                      animation: `fadeIn 0.3s ease ${i * 0.04}s both`
-                    }} onMouseOver={e => canDo && (e.currentTarget.style.background = "rgba(201,185,154,0.07)")}
-                       onMouseOut={e => canDo && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                        <span style={{ fontSize: 18 }}>{a.icon}</span>
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{a.label}</span>
-                        <span style={{ marginLeft: "auto", fontSize: 10, background: canDo ? "rgba(201,185,154,0.1)" : "rgba(0,0,0,0.2)", borderRadius: 6, padding: "1px 6px" }}>
-                          -{a.cost}AP
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 10, color: "rgba(201,185,154,0.4)", marginBottom: 4, lineHeight: 1.5 }}>{a.desc}</div>
-                      <StatDelta effects={a.effects} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Log */}
-            <div style={{ background: cardBg, border, borderRadius: 14, padding: 16, flex: 1 }}>
-              <div style={{ color: "rgba(201,185,154,0.4)", fontSize: 10, marginBottom: 10, letterSpacing: 2 }}>事件记录</div>
-              <div ref={logRef} style={{ maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-                {log.length === 0 && <div style={{ color: "rgba(201,185,154,0.2)", fontSize: 12 }}>你的故事正在开始……</div>}
-                {log.map((l, i) => (
-                  <div key={i} style={{ color: "rgba(201,185,154,0.6)", fontSize: 11, lineHeight: 1.6, borderLeft: "2px solid rgba(201,185,154,0.1)", paddingLeft: 8 }}>
-                    {l.msg}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ marginTop: 12, padding: "8px 16px", background: cardBg, borderRadius: 10, border }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "rgba(201,185,154,0.3)", marginBottom: 6 }}>
-            <span>{STAGES[0].name}</span>
-            <span>{STAGES[1]?.name}</span>
-            <span>读研</span>
-            <span>青年学者</span>
-            <span>退休</span>
-          </div>
-          <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }}>
-            <div style={{
-              height: "100%", borderRadius: 2,
-              width: `${((stageIdx * 16 + round) / 36) * 100}%`,
-              background: "linear-gradient(90deg, #4ECDC4, #c9b99a)",
-              transition: "width 0.5s ease"
-            }} />
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-}
+export default App;

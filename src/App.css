@@ -59,6 +59,50 @@ p {
   flex-wrap: wrap;
 }
 
+.save-slots {
+  display: grid;
+  gap: 12px;
+  width: min(760px, 100%);
+  margin-top: 28px;
+}
+
+.save-slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.35);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.save-slot h2 {
+  margin: 0 0 6px;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.save-slot p {
+  margin: 0;
+  color: #dbeafe;
+  line-height: 1.55;
+}
+
+.slot-kicker {
+  margin-bottom: 4px !important;
+  color: #7dd3fc !important;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 button {
   border: 0;
   font: inherit;
@@ -511,6 +555,14 @@ button:disabled {
   .panel-heading {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .save-slot {
+    grid-template-columns: 1fr;
+  }
+
+  .slot-actions {
+    justify-content: flex-start;
   }
 
   .status-band {

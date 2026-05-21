@@ -16,20 +16,72 @@ import {
   meetsGraduateRequirement,
 } from "./game/formulas.js";
 import { describeRequirements } from "./game/requirements.js";
-import { createInitialGame, LEGACY_SAVE_KEYS, normalizeSavedGame, SAVE_KEY, shouldShowEnding } from "./game/state.js";
+import {
+  ACTIVE_SAVE_SLOT_KEY,
+  clearSaveSlot,
+  createEmptySaveSlots,
+  createInitialGame,
+  LEGACY_SAVE_KEYS,
+  normalizeSavedGame,
+  normalizeSaveSlots,
+  SAVE_KEY,
+  SAVE_SLOTS_KEY,
+  saveGameToSlot,
+  shouldShowEnding,
+} from "./game/state.js";
 import "./App.css";
 
+function loadLegacyGame() {
+  const saved = parseStorageJson(SAVE_KEY, null);
+  if (saved) return normalizeSavedGame(saved);
+
+  for (const key of LEGACY_SAVE_KEYS) {
+    const legacy = parseStorageJson(key, null);
+    if (legacy) return normalizeSavedGame(legacy);
+  }
+
+  return null;
+}
+
+function parseStorageJson(key, fallback) {
+  const value = localStorage.getItem(key);
+  if (!value) return fallback;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+function loadSaveSlots() {
+  const savedSlots = parseStorageJson(SAVE_SLOTS_KEY, null);
+  if (savedSlots) return normalizeSaveSlots(savedSlots);
+
+  const legacyGame = loadLegacyGame();
+  if (!legacyGame) return createEmptySaveSlots();
+
+  return saveGameToSlot(createEmptySaveSlots(), 1, { ...legacyGame, screen: "play" });
+}
+
 function App() {
+  const [saveSlots, setSaveSlots] = useState(() => {
+    try {
+      return loadSaveSlots();
+    } catch {
+      return createEmptySaveSlots();
+    }
+  });
+  const [activeSlotId, setActiveSlotId] = useState(() => {
+    const saved = Number(localStorage.getItem(ACTIVE_SAVE_SLOT_KEY));
+    return Number.isInteger(saved) && saved > 0 ? saved : null;
+  });
   const [game, setGame] = useState(() => {
     try {
-      const saved = localStorage.getItem(SAVE_KEY);
-      if (saved) return normalizeSavedGame(JSON.parse(saved));
-
-      for (const key of LEGACY_SAVE_KEYS) {
-        const legacy = localStorage.getItem(key);
-        if (legacy) return normalizeSavedGame(JSON.parse(legacy));
-      }
-
+      const slots = loadSaveSlots();
+      const savedActiveSlot = Number(localStorage.getItem(ACTIVE_SAVE_SLOT_KEY));
+      const activeSlot = slots.find((slot) => slot.id === savedActiveSlot && slot.game);
+      if (activeSlot) return normalizeSavedGame(activeSlot.game);
       return createInitialGame();
     } catch {
       return createInitialGame();
@@ -37,8 +89,22 @@ function App() {
   });
 
   useEffect(() => {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(game));
-  }, [game]);
+    localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(saveSlots));
+  }, [saveSlots]);
+
+  useEffect(() => {
+    if (activeSlotId) {
+      localStorage.setItem(ACTIVE_SAVE_SLOT_KEY, String(activeSlotId));
+    } else {
+      localStorage.removeItem(ACTIVE_SAVE_SLOT_KEY);
+    }
+  }, [activeSlotId]);
+
+  useEffect(() => {
+    if (!activeSlotId || game.screen === "intro") return;
+    const currentSlots = normalizeSaveSlots(parseStorageJson(SAVE_SLOTS_KEY, []));
+    localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(saveGameToSlot(currentSlots, activeSlotId, game)));
+  }, [activeSlotId, game]);
 
   const stage = STAGES[game.stageIndex];
   const actions = ACTIONS[stage.id] ?? [];
@@ -50,14 +116,49 @@ function App() {
     [],
   );
 
-  function startGame() {
-    setGame({ ...createInitialGame(), screen: "play" });
+  function startGame(slotId, options = {}) {
+    const { confirmOverwrite = true } = options;
+    const slot = saveSlots.find((item) => item.id === slotId);
+    if (confirmOverwrite && slot?.game && !window.confirm(`确定覆盖${slot.name}吗？当前进度会被新的科研人生替换。`)) {
+      return;
+    }
+
+    const next = { ...createInitialGame(), screen: "play" };
+    setActiveSlotId(slotId);
+    setGame(next);
+    setSaveSlots((current) => saveGameToSlot(current, slotId, next));
+  }
+
+  function continueGame(slot) {
+    if (!slot.game) return;
+    setActiveSlotId(slot.id);
+    setGame({ ...normalizeSavedGame(slot.game), screen: "play" });
   }
 
   function resetGame() {
-    localStorage.removeItem(SAVE_KEY);
-    LEGACY_SAVE_KEYS.forEach((key) => localStorage.removeItem(key));
+    if (activeSlotId) {
+      startGame(activeSlotId, { confirmOverwrite: false });
+      return;
+    }
     setGame(createInitialGame());
+  }
+
+  function deleteSlot(slotId) {
+    const slot = saveSlots.find((item) => item.id === slotId);
+    if (slot?.game && !window.confirm(`确定删除${slot.name}吗？这个存档无法恢复。`)) {
+      return;
+    }
+
+    if (activeSlotId === slotId) {
+      setActiveSlotId(null);
+      setGame(createInitialGame());
+    }
+    setSaveSlots((current) => clearSaveSlot(current, slotId));
+  }
+
+  function returnToSlots() {
+    setSaveSlots(loadSaveSlots());
+    setGame((current) => ({ ...current, screen: "intro" }));
   }
 
   function handleAction(item) {
@@ -82,12 +183,7 @@ function App() {
             <p className="intro-copy">
               从高中开始，在考试、专业选择、实验室、论文、基金和学术声望之间做长期取舍，最终目标是成为院士。
             </p>
-            <div className="intro-actions">
-              <button className="primary" onClick={startGame}>开始新游戏</button>
-              <button className="secondary" onClick={() => setGame((current) => ({ ...current, screen: "play" }))}>
-                继续存档
-              </button>
-            </div>
+            <SaveSlotList slots={saveSlots} onStart={startGame} onContinue={continueGame} onDelete={deleteSlot} />
           </div>
         </section>
       </main>
@@ -102,6 +198,7 @@ function App() {
           <h1>科研之路</h1>
         </div>
         <div className="top-actions">
+          <button className="secondary" onClick={returnToSlots}>存档列表</button>
           <button className="secondary" onClick={resetGame}>重新开始</button>
         </div>
       </header>
@@ -241,6 +338,47 @@ function ProgressBar({ label, value }) {
       </div>
     </div>
   );
+}
+
+function SaveSlotList({ slots, onStart, onContinue, onDelete }) {
+  return (
+    <div className="save-slots">
+      {slots.map((slot) => (
+        <article className="save-slot" key={slot.id}>
+          <div>
+            <p className="slot-kicker">{slot.name}</p>
+            <h2>{slot.game ? getSlotTitle(slot.game) : "空存档"}</h2>
+            <p>{slot.game ? getSlotSummary(slot) : "从高三重新开始一段科研人生。"}</p>
+          </div>
+          <div className="slot-actions">
+            {slot.game ? (
+              <>
+                <button className="primary" onClick={() => onContinue(slot)}>继续</button>
+                <button className="secondary" onClick={() => onStart(slot.id)}>新开覆盖</button>
+                <button className="secondary" onClick={() => onDelete(slot.id)}>删除</button>
+              </>
+            ) : (
+              <button className="primary" onClick={() => onStart(slot.id)}>开始</button>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function getSlotTitle(game) {
+  if (game.ending) return game.ending.title;
+  const stage = STAGES[game.stageIndex] ?? STAGES[0];
+  return `${stage.name} 第 ${game.turn} 回合`;
+}
+
+function getSlotSummary(slot) {
+  const game = slot.game;
+  const updatedAt = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString("zh-CN", { hour12: false }) : "未知时间";
+  if (game.ending) return `${game.ending.text} 保存于 ${updatedAt}`;
+  const stage = STAGES[game.stageIndex] ?? STAGES[0];
+  return `${stage.subtitle}，行动点 ${game.ap}。保存于 ${updatedAt}`;
 }
 
 function EffectChips({ effects, progress }) {

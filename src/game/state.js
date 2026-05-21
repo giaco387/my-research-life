@@ -3,6 +3,9 @@ import { INITIAL_PROGRESS, INITIAL_STATS } from "../data/stats.js";
 
 export const SAVE_KEY = "research-road-save-v4";
 export const LEGACY_SAVE_KEYS = ["research-road-save-v1", "research-road-save-v2", "research-road-save-v3"];
+export const SAVE_SLOTS_KEY = "research-road-save-slots-v1";
+export const ACTIVE_SAVE_SLOT_KEY = "research-road-active-slot-v1";
+export const SAVE_SLOT_COUNT = 3;
 export const MAX_LOGS = 80;
 
 const START_LOG = "高三开始了。你把目标写在便签上：先考上一所好大学。";
@@ -53,6 +56,52 @@ export function createInitialGame(overrides = {}) {
     logs: [START_LOG],
     ...overrides,
   };
+}
+
+export function createSaveSlot(id, game = null) {
+  return {
+    id,
+    name: `存档 ${id}`,
+    updatedAt: game ? new Date().toISOString() : null,
+    game,
+  };
+}
+
+export function createEmptySaveSlots() {
+  return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => createSaveSlot(index + 1));
+}
+
+export function normalizeSaveSlots(rawSlots) {
+  const byId = new Map();
+  if (Array.isArray(rawSlots)) {
+    rawSlots.forEach((slot) => {
+      if (!slot || !Number.isInteger(slot.id)) return;
+      byId.set(slot.id, {
+        id: slot.id,
+        name: slot.name || `存档 ${slot.id}`,
+        updatedAt: slot.updatedAt ?? null,
+        game: slot.game ? normalizeSavedGame(slot.game) : null,
+      });
+    });
+  }
+
+  return createEmptySaveSlots().map((slot) => byId.get(slot.id) ?? slot);
+}
+
+export function saveGameToSlot(slots, slotId, game) {
+  return normalizeSaveSlots(slots).map((slot) =>
+    slot.id === slotId
+      ? {
+          ...slot,
+          updatedAt: new Date().toISOString(),
+          game: normalizeSavedGame(game),
+        }
+      : slot,
+  );
+}
+
+export function clearSaveSlot(slots, slotId) {
+  return normalizeSaveSlots(slots).map((slot) => (slot.id === slotId ? createSaveSlot(slotId) : slot));
 }
 
 export function normalizeSavedGame(saved) {

@@ -14,7 +14,8 @@
     "check:graduate": "node scripts/check-graduate-flow.js",
     "check:undergraduate": "node scripts/check-undergraduate-regression.js",
     "check:data": "node scripts/check-data-integrity.js",
-    "check": "npm run check:data && npm run check:graduate && npm run check:undergraduate && npm run check:engine && npm run simulate -- 500",
+    "check:save-slots": "node scripts/check-save-slots.js",
+    "check": "npm run check:data && npm run check:graduate && npm run check:undergraduate && npm run check:engine && npm run check:save-slots && npm run simulate -- 500",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"

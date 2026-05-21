@@ -20,6 +20,16 @@ PROTAGONIST = (
 )
 
 STAGE_PROMPTS = {
+    "home_cover": {
+        "file": "../home-cover.png",
+        "prompt": (
+            "16:9 cinematic realistic key art for a Chinese academic life simulation game called Research Road. "
+            "Show a single Chinese / East Asian male protagonist across time in one cohesive scene: high school desk, "
+            "university library, research lab, late-night PhD office, faculty meeting, and senior scientist archive "
+            "subtly blending into one long path. Serious, humane, reflective, hopeful but not glamorous. "
+            "No readable text, no logo, no watermark, no fantasy elements. Suitable as a game landing page cover."
+        ),
+    },
     "high_school": {
         "file": "high-school.png",
         "prompt": (

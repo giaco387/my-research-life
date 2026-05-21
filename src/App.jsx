@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ACTIONS } from "./data/actions.js";
+import { ENDINGS } from "./data/endings.js";
 import { GRADUATE_ROUTES } from "./data/graduateRoutes.js";
 import { STAGES } from "./data/stages.js";
 import { STAT_LABELS } from "./data/stats.js";
+import packageInfo from "../package.json";
 import {
   canPerformAction,
   chooseEvent as resolveEventChoice,
@@ -31,6 +33,11 @@ import {
 } from "./game/state.js";
 import heroImage from "./assets/hero.png";
 import "./App.css";
+
+const GAME_VERSION = packageInfo.version;
+const HOME_COVER_STYLE = {
+  "--intro-cover": `url("${import.meta.env.BASE_URL}home-cover.png")`,
+};
 
 const STAGE_IMAGE_FILES = {
   high_school: "high-school.png",
@@ -90,6 +97,8 @@ function App() {
   });
   const [activeSlotId, setActiveSlotId] = useState(null);
   const [game, setGame] = useState(() => createInitialGame({ screen: "home" }));
+  const [showDevOverview, setShowDevOverview] = useState(false);
+  const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
   useEffect(() => {
     localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(saveSlots));
@@ -180,10 +189,78 @@ function App() {
     setGame((current) => resolveGraduateRouteChoice(current, route));
   }
 
+  function jumpToStage(stageId) {
+    const stageIndex = STAGES.findIndex((item) => item.id === stageId);
+    const targetStage = STAGES[stageIndex];
+    if (!targetStage) return;
+
+    setActiveSlotId(null);
+    setGame({
+      ...createInitialGame({ screen: "play" }),
+      stageIndex,
+      turn: 1,
+      ap: targetStage.ap,
+      stats: {
+        ...createInitialGame().stats,
+        knowledge: 70,
+        perseverance: 70,
+        focus: 68,
+        health: 72,
+        pressure: 35,
+        eq: 62,
+        money: 45,
+        reputation: 45,
+        literature: 45,
+        experiment: 45,
+        writing: 45,
+        innovation: 45,
+        network: 45,
+        contribution: 35,
+      },
+      progress: {
+        ...createInitialGame().progress,
+        ...Object.fromEntries(Object.keys(targetStage.progress).map((key) => [key, 35])),
+      },
+      logs: [`开发者速览：已跳转到${targetStage.name}阶段。`],
+    });
+  }
+
+  function openGraduateDebug() {
+    const stageIndex = STAGES.findIndex((item) => item.id === "undergraduate");
+    const stage = STAGES[stageIndex];
+
+    setActiveSlotId(null);
+    setGame({
+      ...createInitialGame({ screen: "play" }),
+      stageIndex,
+      turn: stage.turns,
+      ap: 0,
+      stats: {
+        ...createInitialGame().stats,
+        knowledge: 72,
+        perseverance: 70,
+        focus: 68,
+        pressure: 30,
+        reputation: 24,
+        literature: 28,
+        writing: 28,
+        money: 24,
+      },
+      progress: {
+        ...createInitialGame().progress,
+        gpa: 72,
+        research: 70,
+      },
+      pendingGraduateChoice: true,
+      logs: ["开发者速览：已打开本科毕业读研路线选择。"],
+    });
+  }
+
   if (game.screen === "intro" || game.screen === "home") {
     return (
-      <main className="intro">
+      <main className="intro" style={HOME_COVER_STYLE}>
         <section className="intro-hero">
+          <VersionBadge />
           <div className="home-layout">
             <div className="home-copy">
               <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
@@ -197,12 +274,15 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="home-panel">
-              <p className="slot-kicker">当前版本</p>
-              <h2>从学生到科研共同体的一员</h2>
-              <p>游戏会记录你的每次选择：稳妥路线、冒险押注、现实压力和那些没有被奖项命名的贡献。</p>
-            </div>
           </div>
+          {isDevMode && (
+            <DevTools
+              onJumpStage={jumpToStage}
+              onOpenGraduate={openGraduateDebug}
+              onShowOverview={() => setShowDevOverview(true)}
+            />
+          )}
+          {showDevOverview && <DevOverview onClose={() => setShowDevOverview(false)} />}
         </section>
       </main>
     );
@@ -210,8 +290,9 @@ function App() {
 
   if (game.screen === "slots") {
     return (
-      <main className="intro">
+      <main className="intro" style={HOME_COVER_STYLE}>
         <section className="intro-hero">
+          <VersionBadge />
           <div>
             <p className="eyebrow">存档管理</p>
             <h1>选择科研人生</h1>
@@ -221,6 +302,14 @@ function App() {
             </div>
             <SaveSlotList slots={saveSlots} onStart={startGame} onContinue={continueGame} onDelete={deleteSlot} />
           </div>
+          {isDevMode && (
+            <DevTools
+              onJumpStage={jumpToStage}
+              onOpenGraduate={openGraduateDebug}
+              onShowOverview={() => setShowDevOverview(true)}
+            />
+          )}
+          {showDevOverview && <DevOverview onClose={() => setShowDevOverview(false)} />}
         </section>
       </main>
     );
@@ -228,6 +317,7 @@ function App() {
 
   return (
     <main className="app-shell">
+      <VersionBadge />
       <header className="topbar">
         <div>
           <p className="eyebrow">{stage.subtitle}</p>
@@ -341,7 +431,79 @@ function App() {
           </section>
         </div>
       )}
+
+      {isDevMode && (
+        <DevTools
+          onJumpStage={jumpToStage}
+          onOpenGraduate={openGraduateDebug}
+          onShowOverview={() => setShowDevOverview(true)}
+        />
+      )}
+      {showDevOverview && <DevOverview onClose={() => setShowDevOverview(false)} />}
     </main>
+  );
+}
+
+function VersionBadge() {
+  return <div className="version-badge">v{GAME_VERSION}</div>;
+}
+
+function DevTools({ onJumpStage, onOpenGraduate, onShowOverview }) {
+  return (
+    <aside className="dev-tools">
+      <p className="slot-kicker">开发者速览</p>
+      <div className="dev-actions">
+        {STAGES.map((stage) => (
+          <button className="secondary compact" key={stage.id} onClick={() => onJumpStage(stage.id)}>
+            {stage.name}
+          </button>
+        ))}
+        <button className="primary compact" onClick={onOpenGraduate}>读研选择</button>
+        <button className="primary compact" onClick={onShowOverview}>内容总览</button>
+      </div>
+    </aside>
+  );
+}
+
+function DevOverview({ onClose }) {
+  return (
+    <div className="modal-backdrop">
+      <section className="modal dev-overview">
+        <div className="modal-heading">
+          <div>
+            <p className="eyebrow">开发者速览</p>
+            <h2>游戏内容总览</h2>
+          </div>
+          <button className="secondary compact" onClick={onClose}>关闭</button>
+        </div>
+        <div className="dev-overview-grid">
+          <section>
+            <h3>阶段与行动</h3>
+            {STAGES.map((stage) => (
+              <p key={stage.id}>
+                <strong>{stage.name}</strong>：{stage.turns} 回合，{stage.ap} AP，{ACTIONS[stage.id]?.length ?? 0} 个行动。
+              </p>
+            ))}
+          </section>
+          <section>
+            <h3>读研路线</h3>
+            {GRADUATE_ROUTES.map((route) => (
+              <p key={route.id}>
+                <strong>{route.name}</strong>：{route.track}
+              </p>
+            ))}
+          </section>
+          <section>
+            <h3>结局</h3>
+            {ENDINGS.map((ending) => (
+              <p key={ending.id}>
+                <strong>{ending.title}</strong>：{ending.method}
+              </p>
+            ))}
+          </section>
+        </div>
+      </section>
+    </div>
   );
 }
 

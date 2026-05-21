@@ -2,8 +2,8 @@
 .app-shell {
   min-height: 100vh;
   background:
-    linear-gradient(120deg, rgba(31, 76, 91, 0.9), rgba(19, 25, 31, 0.94)),
-    url("./assets/hero.png") center/cover;
+    linear-gradient(120deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)),
+    var(--intro-cover, url("./assets/hero.png")) center/cover;
 }
 
 .intro {
@@ -23,35 +23,8 @@
   max-width: 760px;
 }
 
-.home-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 32px;
-  align-items: end;
-  max-width: 1080px !important;
-}
-
 .home-copy {
   max-width: 680px;
-}
-
-.home-panel {
-  padding: 18px;
-  border: 1px solid rgba(226, 232, 240, 0.35);
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.42);
-}
-
-.home-panel h2 {
-  margin: 0 0 10px;
-  color: #ffffff;
-  font-size: 22px;
-}
-
-.home-panel p {
-  margin: 0;
-  color: #dbeafe;
-  line-height: 1.65;
 }
 
 .eyebrow {
@@ -169,6 +142,8 @@ button {
 
 .compact {
   min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
 }
 
 button:disabled {
@@ -518,6 +493,86 @@ button:disabled {
   font-size: 26px;
 }
 
+.modal-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-heading h2 {
+  margin: 0;
+}
+
+.version-badge {
+  position: fixed;
+  right: 14px;
+  bottom: 12px;
+  z-index: 30;
+  padding: 5px 8px;
+  border: 1px solid rgba(226, 232, 240, 0.38);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.62);
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dev-tools {
+  position: fixed;
+  right: 14px;
+  top: 14px;
+  z-index: 25;
+  width: min(360px, calc(100vw - 28px));
+  padding: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.4);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.82);
+  box-shadow: 0 14px 44px rgba(15, 23, 42, 0.28);
+}
+
+.dev-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dev-overview {
+  width: min(1040px, 100%);
+  max-height: min(860px, calc(100vh - 40px));
+  overflow: auto;
+}
+
+.dev-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dev-overview-grid section {
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.dev-overview-grid h3 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.dev-overview-grid p {
+  margin: 0 0 10px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dev-overview-grid strong {
+  color: #0f172a;
+}
+
 .choice-list {
   display: grid;
   gap: 10px;
@@ -639,10 +694,6 @@ button:disabled {
     font-size: 42px;
   }
 
-  .home-layout {
-    grid-template-columns: 1fr;
-  }
-
   .topbar,
   .panel-heading {
     align-items: stretch;
@@ -670,6 +721,10 @@ button:disabled {
   }
 
   .route-list {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-overview-grid {
     grid-template-columns: 1fr;
   }
 }

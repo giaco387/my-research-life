@@ -1,16 +1,207 @@
-# React + Vite
+# 科研之路
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+《科研之路》是一款以学生成长和科研职业发展为主题的单机回合制模拟游戏。玩家从高三开始，在学习、科研训练、投稿、基金、团队、声望、健康和压力之间做长期取舍，逐步经历本科、硕士、博士、青年教师、教授和院士候选阶段。
 
-Currently, two official plugins are available:
+游戏的目标不只是“当选院士”。最高荣誉是一条很高的路线，但项目也保留了学术大师、优秀教授、转向产业研发、科研受挫、平凡但完整等不同结局。设计重点是让科研道路有策略性，也有现实感。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+线上版本：
 
-## React Compiler
+```text
+https://giaco387.github.io/my-research-life/
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 当前特性
 
-## Expanding the ESLint configuration
+- 回合制行动点系统：每个阶段有不同回合数和行动点上限。
+- 七个成长阶段：高中、本科、硕士、博士、青年教师、教授、院士候选。
+- 双层数值模型：基础属性和科研属性共同影响阶段结算、投稿结果和最终结局。
+- 阶段进度条：例如高考准备度、科研入门度、博士论文、基金积累、重大项目、院士评审等。
+- 随机事件：月考失利、导师邀请、审稿大修、被竞争团队抢发、基金失败、学术争议等。
+- 本科毕业读研路线：保研读硕、考研读硕、直博、海外 PhD 申请、工作后读研。
+- 投稿系统：论文投稿会根据写作、文献、实验、创新、压力和进度判定结果。
+- 多结局系统：最终根据长期积累、压力、健康、论文、奖项、项目、人才培养和贡献判定。
+- 本地三存档：使用浏览器 `localStorage` 保存，不依赖后端服务。
+- 开发者速览模式：通过 `?dev=1` 快速跳转阶段、查看路线和结局。
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 快速开始
+
+环境要求：
+
+- Node.js `^20.19.0` 或 `>=22.12.0`
+- npm
+
+安装依赖：
+
+```bash
+npm install
+```
+
+启动本地开发服务器：
+
+```bash
+npm run dev
+```
+
+构建生产版本：
+
+```bash
+npm run build
+```
+
+预览构建结果：
+
+```bash
+npm run preview
+```
+
+## 常用脚本
+
+| 命令 | 用途 |
+| --- | --- |
+| `npm run dev` | 启动 Vite 开发服务器 |
+| `npm run build` | 构建生产版本到 `dist/` |
+| `npm run preview` | 本地预览生产构建 |
+| `npm run lint` | 运行 ESLint |
+| `npm run check` | 运行数据、流程、存档和模拟检查 |
+| `npm run simulate -- 500` | 随机模拟指定局数并统计结局分布 |
+| `npm run balance` | 运行多策略平衡性模拟 |
+| `npm run deploy` | 构建并发布到 GitHub Pages |
+
+## 玩法概要
+
+每一回合，玩家根据当前阶段选择行动。行动会消耗 AP，并改变角色属性或阶段进度。AP 不足以执行任何行动时，游戏会自动进入下一回合。
+
+主要属性包括：
+
+- 基础属性：知识、毅力、专注、体力、压力、情商、资金、声望。
+- 科研属性：文献、实验、写作、创新、合作、贡献。
+- 成果进度：录用论文、高影响论文、代表作、重要奖项、战略贡献等。
+
+压力和体力不是装饰数值。压力过高、体力过低会显著影响游戏走向，并可能触发“科研受挫”结局。休息、恢复节奏和心理调适是长期科研路线的一部分。
+
+## 阶段路线
+
+| 阶段 | 核心目标 |
+| --- | --- |
+| 高中 | 考入理想大学，打下长期学习能力 |
+| 本科 | 完成专业训练，争取进入科研路线 |
+| 硕士 | 完成课题，产出论文，决定是否继续读博 |
+| 博士 | 形成独立方向，完成博士论文，积累原创贡献 |
+| 青年教师 | 申请基金、建设团队，完成从学生到 PI 的转变 |
+| 教授 | 承担重大项目，培养学生，形成稳定学术影响 |
+| 院士候选 | 用原创贡献、学术声望和人才培养接受最终评审 |
+
+本科阶段结束时不会直接进入固定路线，而是弹出读研路径选择。不同路线有不同门槛、成功率、失败后备选路径和后续阶段起点。
+
+## 项目结构
+
+```text
+.
+├── public/                 # 首页封面、阶段图片、favicon 等静态资源
+├── scripts/                # 数据检查、流程回归、平衡性模拟、图片生成脚本
+├── src/
+│   ├── App.jsx             # React 页面、存档入口、开发者速览和主要交互
+│   ├── App.css             # 应用样式
+│   ├── data/               # 游戏内容数据：行动、事件、阶段、结局、路线、属性
+│   └── game/               # 游戏规则：状态机、公式、条件判断、存档规范化
+├── index.html
+├── package.json
+└── vite.config.js
+```
+
+核心数据入口：
+
+- `src/data/stages.js`：阶段定义、回合数、AP、阶段目标和进度条。
+- `src/data/actions.js`：各阶段可执行行动、消耗、收益、风险和解锁条件。
+- `src/data/events.js`：各阶段随机事件和事件选项。
+- `src/data/graduateRoutes.js`：本科毕业后的读研路线。
+- `src/data/endings.js`：结局判定条件和结局文案。
+- `src/data/stats.js`：属性名称和初始数值。
+
+核心规则入口：
+
+- `src/game/engine.js`：执行行动、触发事件、推进回合、阶段结算、选择读研路线。
+- `src/game/formulas.js`：数值变化、阶段奖励、投稿判定、读研成功率、结局选择。
+- `src/game/requirements.js`：行动和路线的条件判断。
+- `src/game/state.js`：初始状态、存档槽、旧存档兼容和状态修复。
+
+## 开发者模式
+
+本地或线上地址追加 `?dev=1` 可开启开发者速览：
+
+```text
+http://localhost:5173/my-research-life/?dev=1
+```
+
+开发者模式可以：
+
+- 快速跳转到任意阶段。
+- 直接打开本科毕业后的读研路线选择。
+- 查看阶段、行动数量、读研路线和结局总览。
+
+这些跳转只用于当前页面调试，不会写入玩家存档。
+
+## 检查与平衡
+
+项目包含一组轻量脚本，用来降低数据改动后的回归风险：
+
+```bash
+npm run check
+```
+
+完整检查会覆盖：
+
+- 数据完整性。
+- 本科毕业不会误触发终局结局。
+- 读研路线选择流程。
+- 核心状态机推进。
+- 多存档状态。
+- 500 局随机模拟。
+
+如果只想快速观察结局分布，可以运行：
+
+```bash
+npm run simulate -- 1000
+```
+
+平衡性调整时建议同时查看：
+
+```bash
+npm run balance
+```
+
+## 存档说明
+
+游戏使用浏览器 `localStorage` 保存 3 个本地存档槽。刷新页面后会回到首页，玩家需要进入存档列表继续具体存档。
+
+当前存档键名定义在 `src/game/state.js` 中。该文件也包含旧版本存档兼容逻辑，修改状态结构时应同步更新规范化和修复逻辑。
+
+## 内容扩展建议
+
+新增或调整游戏内容时，优先改数据文件，而不是直接改状态机：
+
+1. 新增阶段：修改 `src/data/stages.js`，并补齐对应行动、事件和阶段图片。
+2. 新增行动：修改 `src/data/actions.js`，必要时在 `src/game/formulas.js` 增加专用系统。
+3. 新增事件：修改 `src/data/events.js`，保持选项收益和风险有明确取舍。
+4. 新增结局：修改 `src/data/endings.js`，注意结局顺序会影响优先判定。
+5. 调整数值：运行 `npm run check` 和模拟脚本观察结局分布。
+
+更多设计背景可以阅读：
+
+- [GAME_DESIGN.md](GAME_DESIGN.md)
+- [ACADEMIC_CAREER_MODEL.md](ACADEMIC_CAREER_MODEL.md)
+- [ENDINGS_OVERVIEW.md](ENDINGS_OVERVIEW.md)
+- [GAME_FLOW_MINDMAP.md](GAME_FLOW_MINDMAP.md)
+- [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
+
+## 技术栈
+
+- React 19
+- Vite 8
+- ESLint 10
+- GitHub Pages 部署
+- 浏览器 `localStorage` 本地存档
+
+## 许可证
+
+当前仓库尚未声明开源许可证。若要对外协作或复用代码，建议先补充 `LICENSE` 文件。

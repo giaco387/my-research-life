@@ -117,6 +117,7 @@ function App() {
   const [game, setGame] = useState(() => createInitialGame({ screen: "home" }));
   const [pendingSlotId, setPendingSlotId] = useState(null);
   const [showDevOverview, setShowDevOverview] = useState(false);
+  const [showCareerStatus, setShowCareerStatus] = useState(false);
   const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
   useEffect(() => {
@@ -430,7 +431,7 @@ function App() {
               ))}
             </div>
           ))}
-          <CareerStatus game={game} />
+          <CareerStatus game={game} expanded={showCareerStatus} onToggle={() => setShowCareerStatus((value) => !value)} />
         </aside>
 
         <section className="main-column">
@@ -633,7 +634,7 @@ function ProgressBar({ label, value }) {
   );
 }
 
-function CareerStatus({ game }) {
+function CareerStatus({ game, expanded, onToggle }) {
   const career = game.career ?? {};
   const papers = [
     ["录用", game.progress.acceptedPapers ?? 0],
@@ -647,17 +648,25 @@ function CareerStatus({ game }) {
 
   return (
     <section className="career-status">
-      <h3>履历状态</h3>
-      <div className="career-list">
-        <CareerLine label="论文" value={papers.map(([label, value]) => `${label}${value}`).join(" / ")} />
-        <CareerLine label="家庭" value={`${career.maritalStatus ?? "未婚"} / 后代 ${career.children ?? 0}`} />
-        <CareerLine label="导师" value={career.mentor ?? "暂无"} />
-        <CareerLine label="本人帽子" value={career.selfTitles?.length ? career.selfTitles.join("、") : "暂无"} />
-        <CareerLine label="学生" value={`硕${students.master ?? 0} / 博${students.phd ?? 0} / 博后${students.postdoc ?? 0}`} />
-        <CareerLine label="团队教师" value={`讲师${faculty.lecturer ?? 0} / 副高${faculty.associateProfessor ?? 0} / 正高${faculty.professor ?? 0}`} />
-        <CareerLine label="团队帽子" value={`优青${teamTitles.youqing ?? 0} / 杰青${teamTitles.jieqing ?? 0} / 长青${teamTitles.changjiangYoung ?? 0} / 长特${teamTitles.changjiangProfessor ?? 0}`} />
-        <CareerLine label="国家基金" value={`申请${grants.applications ?? 0} / 资助${grants.funded ?? 0}`} />
-      </div>
+      <button className="career-toggle" type="button" onClick={onToggle} aria-expanded={expanded}>
+        <span>
+          <b>履历状态</b>
+          <small>{papers.map(([label, value]) => `${label}${value}`).join(" / ")}，基金{grants.funded ?? 0}</small>
+        </span>
+        <strong>{expanded ? "收起" : "展开"}</strong>
+      </button>
+      {expanded && (
+        <div className="career-list">
+          <CareerLine label="论文" value={papers.map(([label, value]) => `${label}${value}`).join(" / ")} />
+          <CareerLine label="家庭" value={`${career.maritalStatus ?? "未婚"} / 后代 ${career.children ?? 0}`} />
+          <CareerLine label="导师" value={career.mentor ?? "暂无"} />
+          <CareerLine label="本人帽子" value={career.selfTitles?.length ? career.selfTitles.join("、") : "暂无"} />
+          <CareerLine label="学生" value={`硕${students.master ?? 0} / 博${students.phd ?? 0} / 博后${students.postdoc ?? 0}`} />
+          <CareerLine label="团队教师" value={`讲师${faculty.lecturer ?? 0} / 副高${faculty.associateProfessor ?? 0} / 正高${faculty.professor ?? 0}`} />
+          <CareerLine label="团队帽子" value={`优青${teamTitles.youqing ?? 0} / 杰青${teamTitles.jieqing ?? 0} / 长青${teamTitles.changjiangYoung ?? 0} / 长特${teamTitles.changjiangProfessor ?? 0}`} />
+          <CareerLine label="国家基金" value={`申请${grants.applications ?? 0} / 资助${grants.funded ?? 0}`} />
+        </div>
+      )}
     </section>
   );
 }

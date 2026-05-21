@@ -449,15 +449,48 @@ button:disabled {
   border-top: 1px solid #e2e8f0;
 }
 
-.career-status h3 {
-  margin: 0 0 12px;
+.career-toggle {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
   color: #0f172a;
-  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.career-toggle b,
+.career-toggle small {
+  display: block;
+}
+
+.career-toggle b {
+  font-size: 15px;
+}
+
+.career-toggle small {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.career-toggle > strong {
+  flex: 0 0 auto;
+  color: #0369a1;
+  font-size: 13px;
 }
 
 .career-list {
   display: grid;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .career-line {

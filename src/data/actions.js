@@ -50,11 +50,13 @@ export const ACTIONS = {
   young_faculty: [
     action("grant", "申请青年基金", 3, "基金是独立 PI 的第一道硬门槛。", { writing: 5, reputation: 3, pressure: 5 }, { fund: 12 }, {
       maxUses: 3,
+      career: { grantDeltas: { applications: 1, funded: 1, youth: 1 } },
       requirements: [requirement("写作", "writing", 30), requirement("声望", "reputation", 20)],
-      risk: { chance: 0.3, text: "基金落选，评审意见尖锐但能帮助你修改方向。", effects: { writing: 3, pressure: 5 }, progress: { fund: -5 } },
+      risk: { chance: 0.3, text: "基金落选，评审意见尖锐但能帮助你修改方向。", effects: { writing: 3, pressure: 5 }, progress: { fund: -5 }, career: { grantDeltas: { funded: -1, youth: -1 } } },
     }),
     action("recruit", "招募学生", 3, "团队开始从一个人变成一群人。", { network: 5, eq: 4, pressure: 3 }, { team: 10 }, {
       maxUses: 3,
+      career: { studentDeltas: { master: 2, phd: 1 } },
     }),
     action("platform", "建设平台", 3, "设备、流程和数据都要从零搭起来。", { money: -7, experiment: 4, pressure: 4 }, { team: 8, fund: 4 }, {
       maxUses: 3,
@@ -71,23 +73,27 @@ export const ACTIONS = {
   talent_track: [
     action("youqing", "冲击优青", 3, "青年人才窗口很窄，前期成果、申请书和同行可见度都会被放在一起比较。", { writing: 5, reputation: 5, pressure: 5 }, { talentTitles: 14, peerRecognition: 6 }, {
       maxUses: 2,
+      career: { grantDeltas: { applications: 1, funded: 1 }, addSelfTitles: ["优青"] },
       requirements: [requirement("年龄", "age", 0, "age", 40), requirement("声望", "reputation", 42), requirement("代表作", "representativeWorks", 1, "progress")],
-      risk: { chance: 0.42, text: "优青落选，评审意见写着“基础较好，但优势不够突出”。", effects: { pressure: 5, writing: 3 }, progress: { talentTitles: -5 } },
+      risk: { chance: 0.42, text: "优青落选，评审意见写着“基础较好，但优势不够突出”。", effects: { pressure: 5, writing: 3 }, progress: { talentTitles: -5 }, career: { grantDeltas: { funded: -1 }, removeSelfTitles: ["优青"] } },
     }),
     action("changjiang_young", "申报长江青年", 3, "高校体系里的青年头衔既看成果，也看平台、推荐和学科位置。", { reputation: 6, network: 4, pressure: 5 }, { talentTitles: 12, peerRecognition: 8 }, {
       maxUses: 2,
+      career: { addSelfTitles: ["长江青年"] },
       requirements: [requirement("年龄", "age", 0, "age", 40), requirement("合作", "network", 44), requirement("团队建设", "team", 38, "progress")],
-      risk: { chance: 0.4, text: "长江青年评审未通过，你意识到平台叙事和同行推荐也会影响窗口期。", effects: { pressure: 4 }, progress: { peerRecognition: -3 } },
+      risk: { chance: 0.4, text: "长江青年评审未通过，你意识到平台叙事和同行推荐也会影响窗口期。", effects: { pressure: 4 }, progress: { peerRecognition: -3 }, career: { removeSelfTitles: ["长江青年"] } },
     }),
     action("jieqing", "冲击杰青", 4, "这不再是普通青年项目，而是对原创主线、代表作和同行认可的综合审查。", { writing: 6, reputation: 7, pressure: 7 }, { talentTitles: 18, peerRecognition: 10, strategicContribution: 4 }, {
       maxUses: 2,
+      career: { grantDeltas: { applications: 1, funded: 1 }, addSelfTitles: ["杰青"] },
       requirements: [requirement("年龄", "age", 0, "age", 48), requirement("贡献", "contribution", 58), requirement("代表作", "representativeWorks", 2, "progress"), requirement("同行认可", "peerRecognition", 30, "progress")],
-      risk: { chance: 0.48, text: "杰青落选，同行认可没有消失，但你也错过了一次关键资源入口。", effects: { pressure: 6, perseverance: 3 }, progress: { talentTitles: -6 } },
+      risk: { chance: 0.48, text: "杰青落选，同行认可没有消失，但你也错过了一次关键资源入口。", effects: { pressure: 6, perseverance: 3 }, progress: { talentTitles: -6 }, career: { grantDeltas: { funded: -1 }, removeSelfTitles: ["杰青"] } },
     }),
     action("overseas_young", "海外优青回国", 3, "把海外训练、合作网络和回国平台捆到同一份申请里。", { network: 6, reputation: 5, money: -4, pressure: 4 }, { talentTitles: 12, peerRecognition: 6 }, {
       maxUses: 1,
+      career: { grantDeltas: { applications: 1, funded: 1 }, addSelfTitles: ["海外优青"] },
       requirements: [requirement("年龄", "age", 0, "age", 42), requirement("合作", "network", 48), requirement("写作", "writing", 42)],
-      risk: { chance: 0.35, text: "海外优青申请没能落地，回国平台和方向匹配还需要重新谈判。", effects: { pressure: 5, money: -3 }, progress: { talentTitles: -4 } },
+      risk: { chance: 0.35, text: "海外优青申请没能落地，回国平台和方向匹配还需要重新谈判。", effects: { pressure: 5, money: -3 }, progress: { talentTitles: -4 }, career: { grantDeltas: { funded: -1 }, removeSelfTitles: ["海外优青"] } },
     }),
     action("peer_seminar", "组织领域研讨", 2, "让同行理解你的问题，而不是只在表格里看指标。", { network: 6, eq: 4, reputation: 4, health: -2 }, { peerRecognition: 10, integrity: 3 }, {
       maxUses: 3,
@@ -103,11 +109,13 @@ export const ACTIONS = {
   professor: [
     action("major_grant", "组织重大项目", 4, "把多个方向、团队和资源合成一个目标。", { reputation: 6, network: 5, pressure: 6 }, { majorProject: 12, strategicContribution: 5 }, {
       maxUses: 3,
+      career: { grantDeltas: { applications: 1, funded: 1, general: 1 } },
       requirements: [requirement("声望", "reputation", 45), requirement("合作", "network", 38)],
-      risk: { chance: 0.18, text: "重大项目评审落选，团队短期士气受挫。", effects: { pressure: 5, reputation: -2 }, progress: { majorProject: -4 } },
+      risk: { chance: 0.18, text: "重大项目评审落选，团队短期士气受挫。", effects: { pressure: 5, reputation: -2 }, progress: { majorProject: -4 }, career: { grantDeltas: { funded: -1, general: -1 } } },
     }),
     action("train_phd", "培养博士生", 3, "学生的成长会反过来塑造你的学术影响。", { eq: 5, contribution: 3, pressure: 3 }, { talent: 10 }, {
       maxUses: 4,
+      career: { studentDeltas: { phd: 2, postdoc: 1 } },
     }),
     action("breakthrough", "攻关原创问题", 4, "风险很高，但这是走向学术高峰的核心。", { innovation: 7, contribution: 8, pressure: 7 }, { majorProject: 8, strategicContribution: 10, representativeWorks: 1 }, {
       maxUses: 3,
@@ -129,16 +137,19 @@ export const ACTIONS = {
   national_leader: [
     action("changjiang_professor", "申报长江特聘", 3, "教授阶段的头衔更看代表性成果、平台责任和学科带动力。", { reputation: 7, network: 5, pressure: 5 }, { talentTitles: 14, peerRecognition: 8 }, {
       maxUses: 2,
+      career: { addSelfTitles: ["长江特聘"] },
       requirements: [requirement("年龄", "age", 0, "age", 55), requirement("声望", "reputation", 62), requirement("重大项目", "majorProject", 45, "progress")],
-      risk: { chance: 0.38, text: "长江特聘未能入选。评审没有否定成果，但认为学科带动力还不够清晰。", effects: { pressure: 5 }, progress: { peerRecognition: -4 } },
+      risk: { chance: 0.38, text: "长江特聘未能入选。评审没有否定成果，但认为学科带动力还不够清晰。", effects: { pressure: 5 }, progress: { peerRecognition: -4 }, career: { removeSelfTitles: ["长江特聘"] } },
     }),
     action("innovation_group", "组建创新群体", 4, "从一个课题组变成一个方向共同体，考验资源整合和年轻骨干培养。", { network: 7, eq: 5, pressure: 6 }, { majorProject: 10, talent: 8, talentTitles: 10 }, {
       maxUses: 2,
+      career: { facultyDeltas: { lecturer: 2, associateProfessor: 1 }, teamTitleDeltas: { youqing: 1 } },
       requirements: [requirement("团队建设", "team", 55, "progress"), requirement("人才培养", "talent", 42, "progress"), requirement("合作", "network", 60)],
-      risk: { chance: 0.28, text: "创新群体申请受挫，几个子方向还没有形成足够统一的问题意识。", effects: { pressure: 5 }, progress: { majorProject: -4 } },
+      risk: { chance: 0.28, text: "创新群体申请受挫，几个子方向还没有形成足够统一的问题意识。", effects: { pressure: 5 }, progress: { majorProject: -4 }, career: { teamTitleDeltas: { youqing: -1 } } },
     }),
     action("national_platform", "承担国家级平台", 4, "平台会放大资源，也会放大行政、协调和长期责任。", { reputation: 6, money: 8, pressure: 7, health: -4 }, { majorProject: 12, strategicContribution: 10, peerRecognition: 5 }, {
       maxUses: 3,
+      career: { grantDeltas: { applications: 1, funded: 1, key: 1 }, facultyDeltas: { associateProfessor: 1, professor: 1 } },
       requirements: [requirement("人才项目", "talentTitles", 45, "progress"), requirement("声望", "reputation", 68)],
     }),
     action("strategic_problem", "攻关战略问题", 4, "把长期原创方向接到更大的科学或工程问题上。", { innovation: 7, contribution: 9, pressure: 7 }, { strategicContribution: 14, representativeWorks: 1, peerRecognition: 6 }, {
@@ -152,8 +163,9 @@ export const ACTIONS = {
     }),
     action("award_bundle", "整理国家奖证据链", 3, "把分散多年的论文、应用和人才培养整理成可被审查的证据。", { writing: 5, reputation: 6, pressure: 5 }, { nationalAwards: 1, strategicContribution: 6, academyReview: 4 }, {
       maxUses: 2,
+      career: { grantDeltas: { applications: 1, funded: 1, major: 1 }, teamTitleDeltas: { jieqing: 1, changjiangYoung: 1 } },
       requirements: [requirement("战略贡献", "strategicContribution", 45, "progress"), requirement("代表作", "representativeWorks", 3, "progress")],
-      risk: { chance: 0.45, text: "国家奖申报未中，成果还需要更长时间被共同体确认。", effects: { pressure: 5 }, progress: { nationalAwards: -1 } },
+      risk: { chance: 0.45, text: "国家奖申报未中，成果还需要更长时间被共同体确认。", effects: { pressure: 5 }, progress: { nationalAwards: -1 }, career: { grantDeltas: { funded: -1, major: -1 }, teamTitleDeltas: { jieqing: -1, changjiangYoung: -1 } } },
     }),
     action("recover", "维持生活秩序", 1, "越接近顶端，越需要有人提醒你不是一台评审材料生成机器。", { health: 8, pressure: -8, focus: 2 }),
   ],

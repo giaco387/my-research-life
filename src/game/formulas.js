@@ -68,6 +68,7 @@ export function resolveGraduateRoute(game, route, random = Math.random) {
     nextStageId: success ? route.successStage : route.failStage,
     ending: route.ending,
     flags: success ? route.flags : route.failFlags,
+    career: success ? route.successCareer ?? route.career : route.failCareer ?? route.career,
   };
 }
 

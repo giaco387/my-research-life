@@ -11,6 +11,36 @@ export const DEFAULT_PROFILE = {
   name: "未命名",
   gender: "undisclosed",
 };
+export const DEFAULT_CAREER = {
+  maritalStatus: "未婚",
+  children: 0,
+  mentor: "暂无",
+  students: {
+    master: 0,
+    phd: 0,
+    postdoc: 0,
+  },
+  faculty: {
+    lecturer: 0,
+    associateProfessor: 0,
+    professor: 0,
+  },
+  selfTitles: [],
+  teamTitles: {
+    youqing: 0,
+    jieqing: 0,
+    changjiangYoung: 0,
+    changjiangProfessor: 0,
+  },
+  grants: {
+    applications: 0,
+    funded: 0,
+    youth: 0,
+    general: 0,
+    key: 0,
+    major: 0,
+  },
+};
 
 const START_LOG = "高三开始了。你把目标写在便签上：先考上一所好大学。";
 
@@ -61,6 +91,7 @@ export function createInitialGame(overrides = {}) {
   return {
     screen: "intro",
     profile: { ...DEFAULT_PROFILE },
+    career: normalizeCareer(),
     stageIndex: 0,
     turn: 1,
     ap: STAGES[0].ap,
@@ -137,6 +168,7 @@ export function normalizeSavedGame(saved) {
     ...base,
     ...saved,
     profile: normalizeProfile(saved.profile),
+    career: normalizeCareer(saved.career),
     stageIndex,
     turn: Number.isInteger(saved.turn) ? Math.max(1, Math.min(saved.turn, stage.turns)) : base.turn,
     ap: Number.isFinite(saved.ap) ? Math.max(0, saved.ap) : base.ap,
@@ -177,10 +209,67 @@ export function normalizeSavedGame(saved) {
   return next;
 }
 
+export function applyCareerEffects(career, effects = {}) {
+  const next = normalizeCareer(career);
+  if (!effects || typeof effects !== "object") return next;
+
+  if (typeof effects.maritalStatus === "string") next.maritalStatus = effects.maritalStatus;
+  if (typeof effects.mentor === "string") next.mentor = effects.mentor;
+  if (Number.isFinite(effects.childrenDelta)) {
+    next.children = clampCareerNumber(next.children + effects.childrenDelta, 0, 8);
+  }
+
+  applyNestedDeltas(next.students, effects.studentDeltas, 0, 80);
+  applyNestedDeltas(next.faculty, effects.facultyDeltas, 0, 60);
+  applyNestedDeltas(next.teamTitles, effects.teamTitleDeltas, 0, 30);
+  applyNestedDeltas(next.grants, effects.grantDeltas, 0, 999);
+
+  if (Array.isArray(effects.addSelfTitles)) {
+    next.selfTitles = Array.from(new Set([...next.selfTitles, ...effects.addSelfTitles])).slice(0, 12);
+  }
+  if (Array.isArray(effects.removeSelfTitles)) {
+    const removals = new Set(effects.removeSelfTitles);
+    next.selfTitles = next.selfTitles.filter((title) => !removals.has(title));
+  }
+
+  return normalizeCareer(next);
+}
+
+export function normalizeCareer(career = {}) {
+  return {
+    maritalStatus: typeof career.maritalStatus === "string" ? career.maritalStatus : DEFAULT_CAREER.maritalStatus,
+    children: clampCareerNumber(career.children, 0, 8),
+    mentor: typeof career.mentor === "string" && career.mentor.trim() ? career.mentor.trim().slice(0, 20) : DEFAULT_CAREER.mentor,
+    students: normalizeCareerGroup(DEFAULT_CAREER.students, career.students, 80),
+    faculty: normalizeCareerGroup(DEFAULT_CAREER.faculty, career.faculty, 60),
+    selfTitles: Array.isArray(career.selfTitles) ? career.selfTitles.filter((item) => typeof item === "string").slice(0, 12) : [],
+    teamTitles: normalizeCareerGroup(DEFAULT_CAREER.teamTitles, career.teamTitles, 30),
+    grants: normalizeCareerGroup(DEFAULT_CAREER.grants, career.grants, 999),
+  };
+}
+
 function normalizeProfile(profile) {
   if (!profile || typeof profile !== "object") return { ...DEFAULT_PROFILE };
 
   const name = typeof profile.name === "string" && profile.name.trim() ? profile.name.trim().slice(0, 12) : DEFAULT_PROFILE.name;
   const gender = ["male", "female", "undisclosed"].includes(profile.gender) ? profile.gender : DEFAULT_PROFILE.gender;
   return { name, gender };
+}
+
+function normalizeCareerGroup(defaults, values = {}, max = 999) {
+  return Object.fromEntries(
+    Object.entries(defaults).map(([key, value]) => [key, clampCareerNumber(values?.[key] ?? value, 0, max)]),
+  );
+}
+
+function applyNestedDeltas(target, deltas = {}, min = 0, max = 999) {
+  Object.entries(deltas ?? {}).forEach(([key, value]) => {
+    if (!Number.isFinite(value) || target[key] === undefined) return;
+    target[key] = clampCareerNumber(target[key] + value, min, max);
+  });
+}
+
+function clampCareerNumber(value, min, max) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, Math.round(value)));
 }

@@ -6,6 +6,6 @@ export function event(id, title, desc, choices) {
   return { id, title, desc, choices };
 }
 
-export function choice(label, effects, progress = {}) {
-  return { label, effects, progress };
+export function choice(label, effects, progress = {}, options = {}) {
+  return { label, effects, progress, ...options };
 }

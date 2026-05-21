@@ -18,6 +18,7 @@ assert.equal(savedSlots[1].game.turn, 3);
 assert.equal(savedSlots[1].game.screen, "play");
 assert.equal(savedSlots[1].game.profile.name, "阿研");
 assert.equal(savedSlots[1].game.profile.gender, "female");
+assert.equal(savedSlots[1].game.career.maritalStatus, "未婚");
 assert.ok(savedSlots[1].updatedAt);
 assert.equal(savedSlots[0].game, null);
 
@@ -52,5 +53,11 @@ const repairedProfile = normalizeSaveSlots([{ id: 1, game: { profile: { name: "�
 assert.ok(repairedProfile[0].game.profile.name.length > 0);
 assert.ok(repairedProfile[0].game.profile.name.length <= 12);
 assert.equal(repairedProfile[0].game.profile.gender, "undisclosed");
+
+const repairedCareer = normalizeSaveSlots([{ id: 1, game: { career: { children: 99, mentor: "", grants: { applications: 3 } } } }]);
+assert.equal(repairedCareer[0].game.career.children, 8);
+assert.equal(repairedCareer[0].game.career.mentor, "暂无");
+assert.equal(repairedCareer[0].game.career.grants.applications, 3);
+assert.equal(repairedCareer[0].game.career.grants.funded, 0);
 
 console.log("多存档状态检查通过。");

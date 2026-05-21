@@ -15,6 +15,11 @@ function assertDeltaKeys(delta, context) {
   }
 }
 
+function assertCareerEffects(career, context) {
+  if (!career) return;
+  assert.ok(typeof career === "object", `${context} career must be an object`);
+}
+
 function assertRequirements(requirements = [], context) {
   for (const requirement of requirements) {
     if (requirement.source === "age" || requirement.type === "age") continue;
@@ -46,9 +51,11 @@ for (const [stageId, actions] of Object.entries(ACTIONS)) {
     }
     assertDeltaKeys(action.effects, `${stageId}.${action.id}.effects`);
     assertDeltaKeys(action.progress, `${stageId}.${action.id}.progress`);
+    assertCareerEffects(action.career, `${stageId}.${action.id}.career`);
     assertRequirements(action.requirements, `${stageId}.${action.id}`);
     assertDeltaKeys(action.risk?.effects, `${stageId}.${action.id}.risk.effects`);
     assertDeltaKeys(action.risk?.progress, `${stageId}.${action.id}.risk.progress`);
+    assertCareerEffects(action.risk?.career, `${stageId}.${action.id}.risk.career`);
   }
 }
 
@@ -62,6 +69,7 @@ for (const [stageId, events] of Object.entries(EVENTS)) {
     for (const choice of event.choices) {
       assertDeltaKeys(choice.effects, `${stageId}.${event.id}.${choice.label}.effects`);
       assertDeltaKeys(choice.progress, `${stageId}.${event.id}.${choice.label}.progress`);
+      assertCareerEffects(choice.career, `${stageId}.${event.id}.${choice.label}.career`);
     }
   }
 }
@@ -74,6 +82,7 @@ for (const route of GRADUATE_ROUTES) {
   assertDeltaKeys(route.failEffects, `${route.id}.failEffects`);
   assertDeltaKeys(route.successProgress, `${route.id}.successProgress`);
   assertDeltaKeys(route.failProgress, `${route.id}.failProgress`);
+  assertCareerEffects(route.career, `${route.id}.career`);
   for (const requirement of route.requirements ?? []) {
     if (requirement.type === "age" || requirement.source === "age") continue;
     const validKeys = requirement.type === "stat" ? statKeys : progressKeys;

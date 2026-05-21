@@ -59,6 +59,10 @@ export const EVENTS = {
       choice("接受合作", { network: 6, reputation: 4, money: -5 }, { originality: 6 }),
       choice("留在组内完成主线", { focus: 4, pressure: -2 }, { dissertation: 6 }),
     ]),
+    event("family_crossroad", "成家岔路", "同龄人开始结婚、生育，实验室的灯还常常亮到深夜。你意识到科研节奏也会重塑生活关系。", [
+      choice("认真经营亲密关系", { eq: 5, pressure: -3, focus: -1 }, {}, { career: { maritalStatus: "已婚" } }),
+      choice("暂时把论文放在前面", { focus: 4, writing: 3, pressure: 4 }),
+    ]),
   ],
   young_faculty: [
     event("grant_reject", "基金申请失败", "青年基金没有中，评审意见有用但也很刺耳。", [
@@ -68,6 +72,10 @@ export const EVENTS = {
     event("student_issue", "学生培养问题", "一名学生长期没有进展，你需要决定怎么处理。", [
       choice("细化目标并密集反馈", { eq: 5, pressure: 4 }, { team: 6 }),
       choice("调整课题方向", { innovation: 3, pressure: 2 }, { team: 4 }),
+    ]),
+    event("new_child", "家庭新成员", "在最忙的申请季，家里迎来新的生命。日程突然变得更碎，但你也第一次认真重排生活优先级。", [
+      choice("共同承担照护", { health: -3, pressure: 4, eq: 5 }, {}, { career: { maritalStatus: "已婚", childrenDelta: 1 } }),
+      choice("暂时不改变工作节奏", { focus: 3, pressure: 6, eq: -2 }),
     ]),
   ],
   talent_track: [
@@ -105,8 +113,8 @@ export const EVENTS = {
       choice("用下一篇代表作回应", { innovation: 5, contribution: 5, pressure: 6 }, { representativeWorks: 1, strategicContribution: 6 }),
     ]),
     event("student_lineage", "学生形成梯队", "几名学生已经成为独立 PI。你第一次意识到，人才培养不只是评价指标。", [
-      choice("让他们独立署名和申报", { eq: 6, reputation: 3 }, { talent: 9, peerRecognition: 4 }),
-      choice("整合成联合攻关网络", { network: 6, pressure: 3 }, { majorProject: 6, strategicContribution: 5 }),
+      choice("让他们独立署名和申报", { eq: 6, reputation: 3 }, { talent: 9, peerRecognition: 4 }, { career: { facultyDeltas: { lecturer: 1, associateProfessor: 1 }, teamTitleDeltas: { youqing: 1 } } }),
+      choice("整合成联合攻关网络", { network: 6, pressure: 3 }, { majorProject: 6, strategicContribution: 5 }, { career: { facultyDeltas: { associateProfessor: 1, professor: 1 }, teamTitleDeltas: { jieqing: 1 } } }),
     ]),
   ],
   academician_candidate: [

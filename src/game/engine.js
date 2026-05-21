@@ -3,7 +3,7 @@ import { EVENTS } from "../data/events.js";
 import { STAGES } from "../data/stages.js";
 import { applyDelta, formatDelta, getEnding, paperReview, resolveGraduateRoute, stageBonus } from "./formulas.js";
 import { meetsRequirements } from "./requirements.js";
-import { appendLogs, getStage, getStageIndex, isFinalStage, shouldShowEnding } from "./state.js";
+import { appendLogs, applyCareerEffects, getStage, getStageIndex, isFinalStage, shouldShowEnding } from "./state.js";
 
 export function canPerformAction(game, action) {
   const uses = game.actionUses?.[action.id] ?? 0;
@@ -128,6 +128,7 @@ export function performAction(game, action, random = Math.random) {
   const stage = getStage(game);
   let stats = applyDelta(game.stats, action.effects);
   let progress = applyDelta(game.progress, action.progress);
+  let career = applyCareerEffects(game.career, action.career);
   let papers = game.papers ?? [];
   const logs = [`${stage.name} 第${game.turn}回合：${action.name}。${formatDelta(action.effects)}`];
 
@@ -135,6 +136,7 @@ export function performAction(game, action, random = Math.random) {
     const review = paperReview(stats, progress, random);
     stats = applyDelta(stats, review.effects);
     progress = applyDelta(progress, review.progress);
+    career = applyCareerEffects(career, review.career);
     papers = [{ turn: game.turn, stage: stage.id, result: review.result }, ...papers].slice(0, 12);
     logs.push(`投稿结果：${review.result}。${formatDelta(review.effects)}`);
   }
@@ -142,6 +144,7 @@ export function performAction(game, action, random = Math.random) {
   if (action.risk && random() < action.risk.chance) {
     stats = applyDelta(stats, action.risk.effects ?? {});
     progress = applyDelta(progress, action.risk.progress ?? {});
+    career = applyCareerEffects(career, action.risk.career);
     logs.push(action.risk.text);
   }
 
@@ -151,6 +154,7 @@ export function performAction(game, action, random = Math.random) {
       ap: game.ap - action.cost,
       stats,
       progress,
+      career,
       papers,
       actionUses: { ...(game.actionUses ?? {}), [action.id]: (game.actionUses?.[action.id] ?? 0) + 1 },
       ending: shouldShowEnding(game) ? game.ending : null,
@@ -164,11 +168,13 @@ export function performAction(game, action, random = Math.random) {
 export function chooseEvent(game, option) {
   const stats = applyDelta(game.stats, option.effects);
   const progress = applyDelta(game.progress, option.progress);
+  const career = applyCareerEffects(game.career, option.career);
   const resolved = appendLogs(
     {
       ...game,
       stats,
       progress,
+      career,
       activeEvent: null,
       pendingAdvance: false,
     },
@@ -184,6 +190,7 @@ export function chooseGraduateRoute(game, route, random = Math.random) {
   const result = resolveGraduateRoute(game, route, random);
   const stats = applyDelta(game.stats, result.effects);
   const progress = applyDelta(game.progress, result.progress);
+  const career = applyCareerEffects(game.career, result.career);
   const age = Math.min(80, (game.age ?? 17) + (route.ageDelta ?? 0));
   const routeLog = `读研去向：${route.name}。${result.text}`;
 
@@ -193,6 +200,7 @@ export function chooseGraduateRoute(game, route, random = Math.random) {
         ...game,
         stats,
         progress,
+        career,
         age,
         ending: result.ending,
         pendingGraduateChoice: false,
@@ -217,6 +225,7 @@ export function chooseGraduateRoute(game, route, random = Math.random) {
       age,
       stats,
       progress,
+      career,
       ending: null,
       pendingGraduateChoice: false,
       pendingAdvance: false,

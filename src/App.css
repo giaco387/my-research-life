@@ -443,6 +443,45 @@ button:disabled {
   border-top: 1px solid #e2e8f0;
 }
 
+.career-status {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.career-status h3 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.career-list {
+  display: grid;
+  gap: 8px;
+}
+
+.career-line {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.career-line span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.career-line strong {
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .stat-meta {
   display: flex;
   justify-content: space-between;

@@ -29,7 +29,23 @@ import {
   saveGameToSlot,
   shouldShowEnding,
 } from "./game/state.js";
+import heroImage from "./assets/hero.png";
 import "./App.css";
+
+const STAGE_IMAGE_FILES = {
+  high_school: "high-school.png",
+  undergraduate: "undergraduate.png",
+  master: "master.png",
+  phd: "phd.png",
+  young_faculty: "young-faculty.png",
+  professor: "professor.png",
+  academician_candidate: "academician-candidate.png",
+};
+
+function getStageImageSrc(stageId) {
+  const file = STAGE_IMAGE_FILES[stageId];
+  return file ? `${import.meta.env.BASE_URL}stages/${file}` : heroImage;
+}
 
 function loadLegacyGame() {
   const saved = parseStorageJson(SAVE_KEY, null);
@@ -235,6 +251,8 @@ function App() {
         </aside>
 
         <section className="main-column">
+          <StageVisual stage={stage} />
+
           <div className="panel progress-panel">
             <h2>阶段进度</h2>
             <div className="progress-list">
@@ -304,6 +322,26 @@ function App() {
         </div>
       )}
     </main>
+  );
+}
+
+function StageVisual({ stage }) {
+  return (
+    <figure className="stage-visual">
+      <img
+        src={getStageImageSrc(stage.id)}
+        alt={`${stage.name}${stage.subtitle}`}
+        onError={(event) => {
+          if (event.currentTarget.src !== heroImage) {
+            event.currentTarget.src = heroImage;
+          }
+        }}
+      />
+      <figcaption>
+        <span>{stage.subtitle}</span>
+        <strong>{stage.name}</strong>
+      </figcaption>
+    </figure>
   );
 }
 

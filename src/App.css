@@ -227,6 +227,57 @@ button:disabled {
   gap: 18px;
 }
 
+.stage-visual {
+  position: relative;
+  min-height: 220px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  border-radius: 8px;
+  background: #0f172a;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.16);
+}
+
+.stage-visual img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.stage-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.68));
+  pointer-events: none;
+}
+
+.stage-visual figcaption {
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  z-index: 1;
+  color: #ffffff;
+}
+
+.stage-visual figcaption span,
+.stage-visual figcaption strong {
+  display: block;
+}
+
+.stage-visual figcaption span {
+  color: #bae6fd;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.stage-visual figcaption strong {
+  margin-top: 4px;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
 .stat-group {
   display: grid;
   gap: 10px;

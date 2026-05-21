@@ -2,7 +2,10 @@ import argparse
 import base64
 import json
 import os
+import warnings
 from pathlib import Path
+
+warnings.filterwarnings("ignore", message=".*urllib3.*charset_normalizer.*")
 
 import requests
 
@@ -10,12 +13,19 @@ import requests
 DEFAULT_API_URL = "http://127.0.0.1:25955/v1/responses"
 DEFAULT_MODEL = "gpt-5.5"
 DEFAULT_OUTPUT_DIR = Path("public/stages")
+DEFAULT_API_KEY = "agt_codex_vCsqhXwMBrAF2s9FKjCh3ZmAg6lpFWnz"
+PROTAGONIST = (
+    "Use the same protagonist across the whole series: a Chinese / East Asian male academic, short black hair, "
+    "calm serious expression, ordinary realistic appearance, no celebrity likeness. Age him naturally for each stage. "
+)
 
 STAGE_PROMPTS = {
     "high_school": {
         "file": "high-school.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. A Chinese high school student protagonist sits by "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 18, the protagonist is a Chinese high school student sitting by "
             "the window during late evening self-study, with exam papers, a mistake notebook, and a water cup "
             "on the desk. Night campus lights outside. Real pressure but not hopeless, tired yet focused. "
             "No readable text, no watermark, no exaggerated facial expression."
@@ -24,7 +34,9 @@ STAGE_PROMPTS = {
     "undergraduate": {
         "file": "undergraduate.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. The same protagonist is now an undergraduate, "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 20, the protagonist is now an undergraduate, "
             "standing between a university laboratory building and a library, carrying a laptop bag and holding "
             "a course schedule plus a first printed research paper. Express curiosity, uncertainty, and first "
             "contact with academic research. No readable text, no watermark."
@@ -33,7 +45,9 @@ STAGE_PROMPTS = {
     "master": {
         "file": "master.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. The same protagonist is now a master's student, "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 24, the protagonist is now a master's student, "
             "organizing data at a lab computer, with instruments, sample containers, a whiteboard, and meeting "
             "notes nearby. Show research training, repeated experiments, an early manuscript, and practical "
             "pressure. No readable text, no watermark."
@@ -42,7 +56,9 @@ STAGE_PROMPTS = {
     "phd": {
         "file": "phd.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. The same protagonist is now a PhD student, alone "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 29, the protagonist is now a PhD student, alone "
             "late at night between a lab and an office. Screens suggest complex charts without readable text; "
             "the desk has manuscript drafts and cold coffee. Show independent exploration, long-term pressure, "
             "and the search for an original problem. No readable text, no watermark."
@@ -51,7 +67,9 @@ STAGE_PROMPTS = {
     "young_faculty": {
         "file": "young-faculty.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. The same protagonist is now a young faculty member "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 35, the protagonist is now a young faculty member "
             "and independent PI, standing in a newly built research group space. Students discuss on one side; "
             "unfinished equipment and grant application materials sit on the other. Show the shift from student "
             "to responsible leader, limited resources, and team building. No readable text, no watermark."
@@ -60,7 +78,9 @@ STAGE_PROMPTS = {
     "professor": {
         "file": "professor.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. The same protagonist is now a professor, discussing "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 48, the protagonist is now a professor, discussing "
             "a major research project with students in a meeting room. The wall has unreadable diagrams and a "
             "research roadmap; project materials are on the table. Show academic leadership, mentoring, "
             "responsibility, and influence. No readable text, no watermark."
@@ -69,7 +89,9 @@ STAGE_PROMPTS = {
     "academician_candidate": {
         "file": "academician-candidate.png",
         "prompt": (
-            "16:9 cinematic realistic editorial game image. The same protagonist is now a senior scientist and "
+            "16:9 cinematic realistic editorial game image. "
+            + PROTAGONIST
+            + "At age 62, with some gray hair, the protagonist is now a senior scientist and "
             "academician candidate, standing in a quiet archive room or in front of an achievement display. "
             "Behind them are subtle team photos, research prototypes, and notebooks without readable text. "
             "Show long-term contribution, peer review, mentorship, and restrained honor. No readable text, no watermark."
@@ -79,6 +101,10 @@ STAGE_PROMPTS = {
 
 
 def extract_image_base64(response_json: dict) -> str | None:
+    for key in ("b64_json", "image_base64", "partial_image_b64", "data", "result"):
+        if response_json.get(key):
+            return response_json[key]
+
     output = response_json.get("output", [])
 
     for item in output:
@@ -91,6 +117,52 @@ def extract_image_base64(response_json: dict) -> str | None:
                     return content[key]
 
     return None
+
+
+def parse_sse_response(text: str) -> dict:
+    merged = {"output": []}
+
+    for block in text.split("\n\n"):
+        data_lines = []
+        for line in block.splitlines():
+            if line.startswith("data:"):
+                data_lines.append(line.removeprefix("data:").strip())
+
+        if not data_lines:
+            continue
+
+        raw_data = "\n".join(data_lines)
+        try:
+            event_data = json.loads(raw_data)
+        except json.JSONDecodeError:
+            continue
+
+        image_base64 = extract_image_base64(event_data)
+        if image_base64:
+            merged["image_base64"] = image_base64
+
+        item = event_data.get("item")
+        if item:
+            existing_index = next((index for index, entry in enumerate(merged["output"]) if entry.get("id") == item.get("id")), None)
+            if existing_index is None:
+                merged["output"].append(item)
+            else:
+                merged["output"][existing_index] = { **merged["output"][existing_index], **item }
+
+        response = event_data.get("response")
+        if response:
+            merged = { **merged, **response }
+
+    return merged
+
+
+def parse_response(resp: requests.Response) -> dict:
+    try:
+        return resp.json()
+    except Exception:
+        if resp.text.lstrip().startswith("event:"):
+            return parse_sse_response(resp.text)
+        raise
 
 
 def generate_image(prompt: str, output_file: Path, api_url: str, api_key: str, model: str) -> None:
@@ -107,7 +179,7 @@ def generate_image(prompt: str, output_file: Path, api_url: str, api_key: str, m
 
     resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
     try:
-        data = resp.json()
+        data = parse_response(resp)
     except Exception as exc:
         raise RuntimeError(f"接口返回的不是 JSON：HTTP {resp.status_code}\n{resp.text}") from exc
 
@@ -131,7 +203,7 @@ def main() -> None:
     parser.add_argument("--model", default=os.getenv("IMAGE_MODEL", DEFAULT_MODEL))
     args = parser.parse_args()
 
-    api_key = os.getenv("IMAGE_API_KEY")
+    api_key = os.getenv("IMAGE_API_KEY", DEFAULT_API_KEY)
     if not api_key:
         raise RuntimeError(
             "未找到环境变量 IMAGE_API_KEY。请先在 PowerShell 中执行：\n"

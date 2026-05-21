@@ -88,21 +88,8 @@ function App() {
       return createEmptySaveSlots();
     }
   });
-  const [activeSlotId, setActiveSlotId] = useState(() => {
-    const saved = Number(localStorage.getItem(ACTIVE_SAVE_SLOT_KEY));
-    return Number.isInteger(saved) && saved > 0 ? saved : null;
-  });
-  const [game, setGame] = useState(() => {
-    try {
-      const slots = loadSaveSlots();
-      const savedActiveSlot = Number(localStorage.getItem(ACTIVE_SAVE_SLOT_KEY));
-      const activeSlot = slots.find((slot) => slot.id === savedActiveSlot && slot.game);
-      if (activeSlot) return normalizeSavedGame(activeSlot.game);
-      return createInitialGame();
-    } catch {
-      return createInitialGame();
-    }
-  });
+  const [activeSlotId, setActiveSlotId] = useState(null);
+  const [game, setGame] = useState(() => createInitialGame({ screen: "home" }));
 
   useEffect(() => {
     localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(saveSlots));

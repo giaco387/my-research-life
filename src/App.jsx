@@ -65,6 +65,42 @@ const STAGES = [
     goal: "完成课题，产出论文，决定是否继续读博。",
     progress: { project: "课题完成度", paper: "论文进度" },
   },
+  {
+    id: "phd",
+    name: "博士",
+    subtitle: "独立探索",
+    turns: 12,
+    ap: 9,
+    goal: "形成独立方向，完成博士论文，积累原创贡献。",
+    progress: { dissertation: "博士论文", originality: "原创贡献" },
+  },
+  {
+    id: "young_faculty",
+    name: "青年教师",
+    subtitle: "独立 PI",
+    turns: 10,
+    ap: 9,
+    goal: "申请基金、建设团队，完成从学生到学术负责人的转变。",
+    progress: { fund: "基金积累", team: "团队建设" },
+  },
+  {
+    id: "professor",
+    name: "教授",
+    subtitle: "学术带头人",
+    turns: 10,
+    ap: 10,
+    goal: "承担重大项目，培养学生，形成稳定学术影响。",
+    progress: { majorProject: "重大项目", talent: "人才培养" },
+  },
+  {
+    id: "academician_candidate",
+    name: "院士候选",
+    subtitle: "最高评审",
+    turns: 6,
+    ap: 10,
+    goal: "以原创贡献、学术声望和人才培养接受最终评审。",
+    progress: { academyReview: "院士评审" },
+  },
 ];
 
 const ACTIONS = {
@@ -93,6 +129,38 @@ const ACTIONS = {
     action("submit", "投稿尝试", 3, "可能被拒，但不会白费。", { reputation: 2, pressure: 6, contribution: 3 }, { paper: 8 }),
     action("conference", "参加会议", 3, "看见更大的学术共同体。", { network: 5, reputation: 4, money: -5, eq: 2 }),
     action("recover", "调整状态", 1, "长期科研需要稳定节奏。", { health: 9, pressure: -7, focus: 2 }),
+  ],
+  phd: [
+    action("deep_topic", "深挖选题", 3, "把问题从可做推进到值得做。", { innovation: 6, literature: 3, pressure: 4 }, { originality: 10 }),
+    action("long_experiment", "长周期实验", 4, "高投入、高波动，但可能形成代表作。", { experiment: 7, health: -7, pressure: 6 }, { dissertation: 10, originality: 8 }),
+    action("paper_sprint", "论文冲刺", 3, "把博士阶段的结果组织成论文。", { writing: 7, reputation: 3, pressure: 6 }, { dissertation: 12 }),
+    action("visit", "交流访问", 3, "在更大的网络里校准自己的方向。", { network: 7, reputation: 4, money: -6, eq: 2 }, { originality: 5 }),
+    action("mentor_junior", "指导低年级", 2, "开始学习如何带人做事。", { eq: 4, network: 3, contribution: 2 }, { dissertation: 4 }),
+    action("mental_break", "心理调适", 1, "博士不是短跑，稳定比爆发更稀缺。", { health: 9, pressure: -8, focus: 2 }),
+  ],
+  young_faculty: [
+    action("grant", "申请青年基金", 3, "基金是独立 PI 的第一道硬门槛。", { writing: 5, reputation: 3, pressure: 5 }, { fund: 12 }),
+    action("recruit", "招募学生", 3, "团队开始从一个人变成一群人。", { network: 5, eq: 4, pressure: 3 }, { team: 10 }),
+    action("platform", "建设平台", 3, "设备、流程和数据都要从零搭起来。", { money: -7, experiment: 4, pressure: 4 }, { team: 8, fund: 4 }),
+    action("representative", "发表代表作", 4, "需要把方向压成清晰的学术贡献。", { reputation: 8, contribution: 7, pressure: 7 }, { fund: 6 }),
+    action("teach", "平衡教学", 2, "教学会消耗时间，也会训练表达。", { writing: 3, eq: 3, health: -2 }, { team: 4 }),
+    action("recover", "恢复节奏", 1, "可持续的科研节奏本身就是能力。", { health: 8, pressure: -7, focus: 2 }),
+  ],
+  professor: [
+    action("major_grant", "组织重大项目", 4, "把多个方向、团队和资源合成一个目标。", { reputation: 6, network: 5, pressure: 6 }, { majorProject: 12 }),
+    action("train_phd", "培养博士生", 3, "学生的成长会反过来塑造你的学术影响。", { eq: 5, contribution: 3, pressure: 3 }, { talent: 10 }),
+    action("breakthrough", "攻关原创问题", 4, "风险很高，但这是走向学术高峰的核心。", { innovation: 7, contribution: 8, pressure: 7 }, { majorProject: 8 }),
+    action("community", "学术共同体服务", 2, "审稿、会议和学会工作会扩大长期声望。", { reputation: 4, network: 4, health: -2 }, { talent: 4 }),
+    action("award", "申报重要奖项", 3, "把长期成果整理成可被评审理解的证据。", { writing: 4, reputation: 6, pressure: 4 }, { majorProject: 6 }),
+    action("recover", "留出空白", 1, "越到后期，越需要避免被事务吞没。", { health: 8, pressure: -7, focus: 2 }),
+  ],
+  academician_candidate: [
+    action("summarize", "凝练原创贡献", 3, "把一生工作压缩成几条真正站得住的贡献。", { contribution: 8, writing: 5, pressure: 4 }, { academyReview: 12 }),
+    action("peer_support", "同行推荐", 3, "声望不是投票机器，但同行认可是硬条件。", { reputation: 7, network: 5, pressure: 3 }, { academyReview: 10 }),
+    action("talent_record", "整理人才培养", 2, "学生和团队的成果也是学术生命的一部分。", { eq: 4, reputation: 3 }, { academyReview: 7 }),
+    action("ethics", "学术自查", 2, "越接近顶端，越要经得起细看。", { contribution: 3, pressure: -3, reputation: 2 }, { academyReview: 6 }),
+    action("public_impact", "社会影响", 3, "让基础研究和现实问题产生连接。", { reputation: 5, money: 4, network: 3 }, { academyReview: 8 }),
+    action("recover", "保持健康", 1, "终局评审前，身体依然是所有行动的前提。", { health: 8, pressure: -7 }),
   ],
 };
 
@@ -142,14 +210,70 @@ const EVENTS = {
       choice("保留就业选项", { money: 5, eq: 2, pressure: -2 }),
     ]),
   ],
+  phd: [
+    event("scooped", "被竞争团队抢发", "你追了半年的方向被另一支团队先发表了。", [
+      choice("快速转向延展问题", { innovation: 5, perseverance: 4, pressure: 5 }, { originality: 5 }),
+      choice("补强证据继续投稿", { experiment: 4, writing: 3, pressure: 7 }, { dissertation: 6 }),
+    ]),
+    event("advisor_gap", "导师资源不足", "导师近期事务繁忙，课题推进主要靠你自己判断。", [
+      choice("主动约讨论并给方案", { eq: 4, focus: 3, pressure: 2 }, { dissertation: 5 }),
+      choice("独立推进", { innovation: 4, perseverance: 4, pressure: 5 }, { originality: 6 }),
+    ]),
+    event("international", "国际合作机会", "一次会议后，海外课题组邀请你做短期合作。", [
+      choice("接受合作", { network: 6, reputation: 4, money: -5 }, { originality: 6 }),
+      choice("留在组内完成主线", { focus: 4, pressure: -2 }, { dissertation: 6 }),
+    ]),
+  ],
+  young_faculty: [
+    event("grant_reject", "基金申请失败", "青年基金没有中，评审意见有用但也很刺耳。", [
+      choice("逐条修改来年再投", { writing: 5, perseverance: 4, pressure: 4 }, { fund: 6 }),
+      choice("先用小项目维持方向", { network: 3, money: 3, pressure: 2 }, { team: 4 }),
+    ]),
+    event("student_issue", "学生培养问题", "一名学生长期没有进展，你需要决定怎么处理。", [
+      choice("细化目标并密集反馈", { eq: 5, pressure: 4 }, { team: 6 }),
+      choice("调整课题方向", { innovation: 3, pressure: 2 }, { team: 4 }),
+    ]),
+  ],
+  professor: [
+    event("academic_dispute", "学术争议", "你的代表性成果被同行公开质疑。", [
+      choice("公开数据和复现实验", { reputation: 4, contribution: 4, pressure: 6 }, { majorProject: 5 }),
+      choice("组织专题讨论", { network: 5, eq: 4, pressure: 3 }, { talent: 5 }),
+    ]),
+    event("student_breakthrough", "学生取得突破", "你指导的博士生做出了超出预期的成果。", [
+      choice("让学生做一作独立展示", { reputation: 4, eq: 5, contribution: 3 }, { talent: 8 }),
+      choice("整合进团队主线", { contribution: 5, pressure: 2 }, { majorProject: 6 }),
+    ]),
+  ],
+  academician_candidate: [
+    event("ethics_review", "学术道德审查", "评审要求补充早期数据和贡献说明。", [
+      choice("完整公开材料", { reputation: 4, pressure: 3 }, { academyReview: 8 }),
+      choice("请合作者共同说明", { network: 4, eq: 3, pressure: 2 }, { academyReview: 6 }),
+    ]),
+    event("final_vote", "最终评议", "多年成果被放到同一张桌上比较，评议进入最后阶段。", [
+      choice("接受同行评议", { pressure: 5, reputation: 3 }, { academyReview: 10 }),
+      choice("保持节奏，继续做研究", { pressure: -3, contribution: 4 }, { academyReview: 6 }),
+    ]),
+  ],
 };
 
 const ENDINGS = [
   {
-    id: "phd",
-    title: "顺利读博",
-    test: (s, p) => p.paper >= 70 && p.project >= 70 && s.reputation >= 30,
-    text: "你带着代表作和清晰的问题意识进入博士阶段，真正的科研长跑开始了。",
+    id: "academician",
+    title: "当选院士",
+    test: (s, p) => p.academyReview >= 78 && s.contribution >= 72 && s.reputation >= 72 && s.network >= 55,
+    text: "你的原创贡献、人才培养和长期学术影响获得同行认可。科研之路抵达最高荣誉，但问题本身仍在前方。",
+  },
+  {
+    id: "master",
+    title: "学术大师",
+    test: (s, p) => p.academyReview >= 68 && s.contribution >= 78,
+    text: "你未必拿到所有头衔，但你的工作已经成为后来者绕不开的坐标。",
+  },
+  {
+    id: "professor",
+    title: "优秀教授",
+    test: (s, p) => p.talent >= 60 || s.reputation >= 65,
+    text: "你建立了稳定团队，培养了学生，也留下了扎实的代表性成果。",
   },
   {
     id: "industry",
@@ -165,9 +289,9 @@ const ENDINGS = [
   },
   {
     id: "steady",
-    title: "稳健毕业",
+    title: "平凡但完整",
     test: () => true,
-    text: "你完成了硕士训练，理解了科研的真实质地。下一步仍有许多可能。",
+    text: "你没有成为传记里的名字，但认真完成了每个阶段的选择。科研训练也成为你理解世界的一种方式。",
   },
 ];
 
@@ -202,9 +326,23 @@ function createInitialGame() {
     turn: 1,
     ap: STAGES[0].ap,
     stats: INITIAL_STATS,
-    progress: { exam: 0, gpa: 0, research: 0, project: 0, paper: 0 },
+    progress: {
+      exam: 0,
+      gpa: 0,
+      research: 0,
+      project: 0,
+      paper: 0,
+      dissertation: 0,
+      originality: 0,
+      fund: 0,
+      team: 0,
+      majorProject: 0,
+      talent: 0,
+      academyReview: 0,
+    },
     usedEvents: [],
     activeEvent: null,
+    pendingAdvance: false,
     ending: null,
     logs: ["高三开始了。你把目标写在便签上：先考上一所好大学。"],
   };
@@ -227,6 +365,70 @@ function pickEvent(game) {
 
 function getEnding(stats, progress) {
   return ENDINGS.find((ending) => ending.test(stats, progress));
+}
+
+function canPerformAnyAction(stageId, ap) {
+  return ACTIONS[stageId].some((item) => item.cost <= ap);
+}
+
+function advanceTurn(current, { allowEvent = true } = {}) {
+  const currentStage = STAGES[current.stageIndex];
+  const event = allowEvent ? pickEvent(current) : null;
+  const recovery = current.stats.health < 20 ? -2 : 0;
+  const nextStats = applyDelta(current.stats, {
+    health: current.stats.health < 30 ? 3 : 1,
+    pressure: current.stats.pressure > 65 ? 1 : -1,
+  });
+
+  if (event) {
+    return {
+      ...current,
+      stats: nextStats,
+      activeEvent: event,
+      pendingAdvance: true,
+      usedEvents: [...current.usedEvents, event.id],
+      logs: [`触发事件：${event.title}`, ...current.logs].slice(0, 80),
+    };
+  }
+
+  if (current.turn >= currentStage.turns) {
+    return settleStage({ ...current, stats: nextStats, pendingAdvance: false });
+  }
+
+  return {
+    ...current,
+    stats: nextStats,
+    turn: current.turn + 1,
+    ap: Math.max(3, currentStage.ap + recovery),
+    pendingAdvance: false,
+    logs: [`行动点不足，自动进入${currentStage.name}第${current.turn + 1}回合。`, ...current.logs].slice(0, 80),
+  };
+}
+
+function settleStage(current) {
+  if (current.stageIndex === STAGES.length - 1) {
+    const ending = getEnding(current.stats, current.progress);
+    return {
+      ...current,
+      ending,
+      pendingAdvance: false,
+      logs: [`结局：${ending.title}`, ...current.logs].slice(0, 80),
+    };
+  }
+
+  const finished = STAGES[current.stageIndex];
+  const nextStage = STAGES[current.stageIndex + 1];
+  const bonus = stageBonus(finished.id, current.stats, current.progress);
+  const stats = applyDelta(current.stats, bonus.effects);
+  return {
+    ...current,
+    stageIndex: current.stageIndex + 1,
+    turn: 1,
+    ap: nextStage.ap,
+    stats,
+    pendingAdvance: false,
+    logs: [`阶段结算：${bonus.text}`, `进入${nextStage.name}阶段：${nextStage.goal}`, ...current.logs].slice(0, 80),
+  };
 }
 
 function App() {
@@ -265,89 +467,34 @@ function App() {
   function performAction(item) {
     if (game.ap < item.cost || game.activeEvent || game.ending) return;
     setGame((current) => {
+      const currentStage = STAGES[current.stageIndex];
       const stats = applyDelta(current.stats, item.effects);
       const progress = applyDelta(current.progress, item.progress);
-      const log = `${stage.name} 第${current.turn}回合：${item.name}。${formatDelta(item.effects)}`;
-      return {
+      const nextAp = current.ap - item.cost;
+      const updated = {
         ...current,
-        ap: current.ap - item.cost,
+        ap: nextAp,
         stats,
         progress,
-        logs: [log, ...current.logs].slice(0, 80),
+        logs: [`${currentStage.name} 第${current.turn}回合：${item.name}。${formatDelta(item.effects)}`, ...current.logs].slice(0, 80),
       };
+      return canPerformAnyAction(currentStage.id, nextAp) ? updated : advanceTurn(updated);
     });
-  }
-
-  function endTurn() {
-    if (game.activeEvent || game.ending) return;
-    setGame((current) => {
-      const currentStage = STAGES[current.stageIndex];
-      const event = pickEvent(current);
-      const recovery = current.stats.health < 20 ? -2 : 0;
-      const nextStats = applyDelta(current.stats, {
-        health: current.stats.health < 30 ? 3 : 1,
-        pressure: current.stats.pressure > 65 ? 1 : -1,
-      });
-
-      if (event) {
-        return {
-          ...current,
-          stats: nextStats,
-          activeEvent: event,
-          usedEvents: [...current.usedEvents, event.id],
-          logs: [`触发事件：${event.title}`, ...current.logs].slice(0, 80),
-        };
-      }
-
-      if (current.turn >= currentStage.turns) {
-        return settleStage({ ...current, stats: nextStats });
-      }
-
-      return {
-        ...current,
-        stats: nextStats,
-        turn: current.turn + 1,
-        ap: Math.max(3, currentStage.ap + recovery),
-        logs: [`进入${currentStage.name}第${current.turn + 1}回合。`, ...current.logs].slice(0, 80),
-      };
-    });
-  }
-
-  function settleStage(current) {
-    if (current.stageIndex === STAGES.length - 1) {
-      const ending = getEnding(current.stats, current.progress);
-      return {
-        ...current,
-        ending,
-        logs: [`结局：${ending.title}`, ...current.logs].slice(0, 80),
-      };
-    }
-
-    const finished = STAGES[current.stageIndex];
-    const nextStage = STAGES[current.stageIndex + 1];
-    const bonus = stageBonus(finished.id, current.stats, current.progress);
-    const stats = applyDelta(current.stats, bonus.effects);
-    return {
-      ...current,
-      stageIndex: current.stageIndex + 1,
-      turn: 1,
-      ap: nextStage.ap,
-      stats,
-      logs: [`阶段结算：${bonus.text}`, `进入${nextStage.name}阶段：${nextStage.goal}`, ...current.logs].slice(0, 80),
-    };
   }
 
   function chooseEvent(option) {
     setGame((current) => {
       const stats = applyDelta(current.stats, option.effects);
       const progress = applyDelta(current.progress, option.progress);
-      return {
+      const resolved = {
         ...current,
         stats,
         progress,
         activeEvent: null,
+        pendingAdvance: false,
         logs: [`事件选择：${option.label}。${formatDelta(option.effects)}`, ...current.logs].slice(0, 80),
       };
+      return current.pendingAdvance ? advanceTurn(resolved, { allowEvent: false }) : resolved;
     });
   }
 
@@ -359,7 +506,7 @@ function App() {
             <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
             <h1>科研之路</h1>
             <p className="intro-copy">
-              从高中开始，在考试、专业选择、实验室、论文和压力之间做长期取舍。首版目标是走完高中、本科和硕士，争取进入博士阶段。
+              从高中开始，在考试、专业选择、实验室、论文、基金和学术声望之间做长期取舍，最终目标是成为院士。
             </p>
             <div className="intro-actions">
               <button className="primary" onClick={startGame}>开始新游戏</button>
@@ -429,9 +576,7 @@ function App() {
           <div className="panel action-panel">
             <div className="panel-heading">
               <h2>本回合行动</h2>
-              <button className="primary compact" onClick={endTurn} disabled={!!game.activeEvent || !!game.ending}>
-                结束回合
-              </button>
+              <p className="turn-hint">行动点不足以执行任何行动时，将自动进入下一回合。</p>
             </div>
             <div className="actions-grid">
               {actions.map((item) => (
@@ -489,10 +634,42 @@ function stageBonus(stageId, stats, progress) {
     return { text: "高考结果普通，但你保留了韧性和继续向上的空间。", effects: { perseverance: 5, pressure: -4 } };
   }
 
-  const readiness = progress.gpa * 0.35 + progress.research * 0.45 + stats.reputation * 0.2;
-  if (readiness >= 70) return { text: "你获得优秀导师认可，带着明确方向进入硕士阶段。", effects: { reputation: 6, literature: 4, network: 4 } };
-  if (readiness >= 48) return { text: "你拿到升学机会，但仍需要补足科研基本功。", effects: { literature: 3, experiment: 2 } };
-  return { text: "你勉强进入科研训练，压力和不确定性都更高了。", effects: { pressure: 6, perseverance: 3 } };
+  if (stageId === "undergraduate") {
+    const readiness = progress.gpa * 0.35 + progress.research * 0.45 + stats.reputation * 0.2;
+    if (readiness >= 70) return { text: "你获得优秀导师认可，带着明确方向进入硕士阶段。", effects: { reputation: 6, literature: 4, network: 4 } };
+    if (readiness >= 48) return { text: "你拿到升学机会，但仍需要补足科研基本功。", effects: { literature: 3, experiment: 2 } };
+    return { text: "你勉强进入科研训练，压力和不确定性都更高了。", effects: { pressure: 6, perseverance: 3 } };
+  }
+
+  if (stageId === "master") {
+    const readiness = progress.project * 0.4 + progress.paper * 0.4 + stats.literature * 0.1 + stats.writing * 0.1;
+    if (readiness >= 72) return { text: "你带着论文和问题意识进入博士阶段。", effects: { reputation: 7, contribution: 6, innovation: 4 } };
+    if (readiness >= 50) return { text: "你获得读博机会，但博士阶段需要更强的独立性。", effects: { perseverance: 5, literature: 3, pressure: 3 } };
+    return { text: "你完成了硕士训练，但科研基础并不稳固。", effects: { pressure: 5, writing: 2 } };
+  }
+
+  if (stageId === "phd") {
+    const readiness = progress.dissertation * 0.45 + progress.originality * 0.4 + stats.contribution * 0.15;
+    if (readiness >= 75) return { text: "你的博士工作形成了清晰原创贡献，拿到青年教师位置。", effects: { reputation: 9, contribution: 8, network: 5 } };
+    if (readiness >= 52) return { text: "你顺利博士毕业，开始独立承担课题。", effects: { reputation: 5, writing: 4, pressure: 2 } };
+    return { text: "博士毕业过程艰难，你进入下一阶段时仍背着很重的压力。", effects: { pressure: 8, perseverance: 4 } };
+  }
+
+  if (stageId === "young_faculty") {
+    const readiness = progress.fund * 0.45 + progress.team * 0.35 + stats.reputation * 0.2;
+    if (readiness >= 70) return { text: "你站稳了独立 PI 的位置，团队开始产出稳定成果。", effects: { reputation: 8, contribution: 6, money: 8 } };
+    if (readiness >= 48) return { text: "你保住了方向，也理解了管理和科研的双重压力。", effects: { eq: 4, network: 4, pressure: 3 } };
+    return { text: "青年教师阶段消耗很大，你的团队基础仍然薄弱。", effects: { pressure: 7, health: -4 } };
+  }
+
+  if (stageId === "professor") {
+    const readiness = progress.majorProject * 0.45 + progress.talent * 0.35 + stats.contribution * 0.2;
+    if (readiness >= 72) return { text: "你形成了学术影响和人才梯队，进入院士候选视野。", effects: { reputation: 10, contribution: 8, network: 6 } };
+    if (readiness >= 50) return { text: "你成为稳健的学术带头人，但距离最高评审仍有差距。", effects: { reputation: 6, contribution: 4 } };
+    return { text: "你承担了大量事务，真正能沉淀为学术影响的成果偏少。", effects: { pressure: 6, eq: 3 } };
+  }
+
+  return { text: "你进入最终评审阶段，所有积累都会被重新衡量。", effects: { reputation: 2 } };
 }
 
 function StatBar({ label, value, danger }) {

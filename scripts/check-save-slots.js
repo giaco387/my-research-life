@@ -12,10 +12,12 @@ const emptySlots = createEmptySaveSlots();
 assert.equal(emptySlots.length, SAVE_SLOT_COUNT);
 assert.ok(emptySlots.every((slot, index) => slot.id === index + 1 && slot.game === null));
 
-const game = createInitialGame({ screen: "play", turn: 3, ap: 2 });
+const game = createInitialGame({ screen: "play", turn: 3, ap: 2, profile: { name: "阿研", gender: "female" } });
 const savedSlots = saveGameToSlot(emptySlots, 2, game);
 assert.equal(savedSlots[1].game.turn, 3);
 assert.equal(savedSlots[1].game.screen, "play");
+assert.equal(savedSlots[1].game.profile.name, "阿研");
+assert.equal(savedSlots[1].game.profile.gender, "female");
 assert.ok(savedSlots[1].updatedAt);
 assert.equal(savedSlots[0].game, null);
 
@@ -45,5 +47,10 @@ assert.equal(migratedProfessor[0].game.age, 39);
 const migratedAcademician = normalizeSaveSlots([{ id: 1, game: { stageIndex: 6, turn: 2, ap: 4 } }]);
 assert.equal(migratedAcademician[0].game.stageIndex, 8);
 assert.equal(migratedAcademician[0].game.age, 54);
+
+const repairedProfile = normalizeSaveSlots([{ id: 1, game: { profile: { name: "很长很长很长很长的名字", gender: "bad" } } }]);
+assert.ok(repairedProfile[0].game.profile.name.length > 0);
+assert.ok(repairedProfile[0].game.profile.name.length <= 12);
+assert.equal(repairedProfile[0].game.profile.gender, "undisclosed");
 
 console.log("多存档状态检查通过。");

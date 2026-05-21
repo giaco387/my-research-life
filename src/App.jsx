@@ -23,6 +23,7 @@ import {
   clearSaveSlot,
   createEmptySaveSlots,
   createInitialGame,
+  DEFAULT_PROFILE,
   LEGACY_SAVE_KEYS,
   normalizeSavedGame,
   normalizeSaveSlots,
@@ -38,6 +39,13 @@ const GAME_VERSION = packageInfo.version;
 const HOME_COVER_STYLE = {
   "--intro-cover": `url("${import.meta.env.BASE_URL}home-cover.png")`,
 };
+const CREATION_POINTS = 20;
+const CREATION_STATS = ["knowledge", "perseverance", "focus", "health", "eq", "money"];
+const GENDER_OPTIONS = [
+  { id: "female", label: "女" },
+  { id: "male", label: "男" },
+  { id: "undisclosed", label: "不说明" },
+];
 
 const STAGE_IMAGE_FILES = {
   high_school: "high-school.png",
@@ -107,6 +115,7 @@ function App() {
   });
   const [activeSlotId, setActiveSlotId] = useState(null);
   const [game, setGame] = useState(() => createInitialGame({ screen: "home" }));
+  const [pendingSlotId, setPendingSlotId] = useState(null);
   const [showDevOverview, setShowDevOverview] = useState(false);
   const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
@@ -146,8 +155,26 @@ function App() {
       return;
     }
 
-    const next = { ...createInitialGame(), screen: "play" };
+    setPendingSlotId(slotId);
+    setGame({ ...createInitialGame(), screen: "create" });
+  }
+
+  function createCharacter(character) {
+    const slotId = pendingSlotId ?? activeSlotId;
+    if (!slotId) return;
+
+    const next = {
+      ...createInitialGame(),
+      screen: "play",
+      profile: character.profile,
+      stats: {
+        ...createInitialGame().stats,
+        ...character.stats,
+      },
+      logs: [`${character.profile.name}的科研之路开始了。你把目标写在便签上：先考上一所好大学。`],
+    };
     setActiveSlotId(slotId);
+    setPendingSlotId(null);
     setGame(next);
     setSaveSlots((current) => saveGameToSlot(current, slotId, next));
   }
@@ -181,10 +208,12 @@ function App() {
 
   function returnToSlots() {
     setSaveSlots(loadSaveSlots());
+    setPendingSlotId(null);
     setGame((current) => ({ ...current, screen: "slots" }));
   }
 
   function returnHome() {
+    setPendingSlotId(null);
     setGame((current) => ({ ...current, screen: "home" }));
   }
 
@@ -331,13 +360,36 @@ function App() {
     );
   }
 
+  if (game.screen === "create") {
+    return (
+      <main className="intro" style={HOME_COVER_STYLE}>
+        <section className="intro-hero create-hero">
+          <VersionBadge />
+          <CharacterCreator
+            baseStats={createInitialGame().stats}
+            onCancel={returnToSlots}
+            onCreate={createCharacter}
+          />
+          {isDevMode && (
+            <DevTools
+              onJumpStage={jumpToStage}
+              onOpenGraduate={openGraduateDebug}
+              onShowOverview={() => setShowDevOverview(true)}
+            />
+          )}
+          {showDevOverview && <DevOverview onClose={() => setShowDevOverview(false)} />}
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="app-shell">
       <VersionBadge />
       <header className="topbar">
         <div>
           <p className="eyebrow">{stage.subtitle}</p>
-          <h1>科研之路</h1>
+          <h1>{game.profile?.name ?? DEFAULT_PROFILE.name}</h1>
         </div>
         <div className="top-actions">
           <button className="secondary" onClick={returnToSlots}>存档列表</button>
@@ -580,6 +632,106 @@ function ProgressBar({ label, value }) {
   );
 }
 
+function CharacterCreator({ baseStats, onCancel, onCreate }) {
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState("undisclosed");
+  const [allocations, setAllocations] = useState(() => Object.fromEntries(CREATION_STATS.map((key) => [key, 0])));
+  const usedPoints = Object.values(allocations).reduce((sum, value) => sum + value, 0);
+  const remaining = CREATION_POINTS - usedPoints;
+  const finalName = name.trim() || DEFAULT_PROFILE.name;
+
+  function adjustStat(key, delta) {
+    setAllocations((current) => {
+      const value = current[key] ?? 0;
+      if (delta > 0 && remaining <= 0) return current;
+      const nextValue = clamp(value + delta, 0, 8);
+      return { ...current, [key]: nextValue };
+    });
+  }
+
+  function submit(event) {
+    event.preventDefault();
+
+    onCreate({
+      profile: {
+        name: finalName.slice(0, 12),
+        gender,
+      },
+      stats: Object.fromEntries(CREATION_STATS.map((key) => [key, baseStats[key] + allocations[key]])),
+    });
+  }
+
+  return (
+    <form className="creator-panel" onSubmit={submit}>
+      <div className="modal-heading">
+        <div>
+          <p className="eyebrow">角色创建</p>
+          <h1>开始前的自己</h1>
+        </div>
+        <button className="secondary compact" type="button" onClick={onCancel}>返回</button>
+      </div>
+
+      <div className="creator-grid">
+        <label className="field-row">
+          <span>姓名</span>
+          <input
+            maxLength={12}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="未命名"
+            value={name}
+          />
+        </label>
+
+        <div className="field-row">
+          <span>性别</span>
+          <div className="segmented-control">
+            {GENDER_OPTIONS.map((option) => (
+              <button
+                className={gender === option.id ? "segment active" : "segment"}
+                key={option.id}
+                onClick={() => setGender(option.id)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <section className="allocation-panel">
+        <div className="panel-heading">
+          <h2>初始属性点</h2>
+          <p className={remaining === 0 ? "points-left done" : "points-left"}>剩余 {remaining}</p>
+        </div>
+        <div className="allocation-list">
+          {CREATION_STATS.map((key) => {
+            const bonus = allocations[key] ?? 0;
+            return (
+              <div className="allocation-row" key={key}>
+                <div>
+                  <strong>{STAT_LABELS[key]}</strong>
+                  <span>{baseStats[key]} + {bonus} = {baseStats[key] + bonus}</span>
+                </div>
+                <div className="stepper">
+                  <button type="button" onClick={() => adjustStat(key, -1)} disabled={bonus <= 0}>-</button>
+                  <b>{bonus}</b>
+                  <button type="button" onClick={() => adjustStat(key, 1)} disabled={remaining <= 0 || bonus >= 8}>+</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="intro-actions creator-actions">
+        <button className="primary" type="submit">开始科研之路</button>
+        <button className="secondary" type="button" onClick={() => setAllocations(Object.fromEntries(CREATION_STATS.map((key) => [key, 0])))}>重置点数</button>
+      </div>
+    </form>
+  );
+}
+
 function SaveSlotList({ slots, onStart, onContinue, onDelete }) {
   return (
     <div className="save-slots">
@@ -610,7 +762,7 @@ function SaveSlotList({ slots, onStart, onContinue, onDelete }) {
 function getSlotTitle(game) {
   if (game.ending) return game.ending.title;
   const stage = STAGES[game.stageIndex] ?? STAGES[0];
-  return `${stage.name} 第 ${game.turn} 回合，${game.age ?? 17} 岁`;
+  return `${game.profile?.name ?? DEFAULT_PROFILE.name}：${stage.name} 第 ${game.turn} 回合，${game.age ?? 17} 岁`;
 }
 
 function getSlotSummary(slot) {
@@ -618,7 +770,11 @@ function getSlotSummary(slot) {
   const updatedAt = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString("zh-CN", { hour12: false }) : "未知时间";
   if (game.ending) return `${game.ending.text} 保存于 ${updatedAt}`;
   const stage = STAGES[game.stageIndex] ?? STAGES[0];
-  return `${stage.subtitle}，行动点 ${game.ap}，年龄 ${game.age ?? 17}。保存于 ${updatedAt}`;
+  return `${getGenderLabel(game.profile?.gender)}，${stage.subtitle}，行动点 ${game.ap}，年龄 ${game.age ?? 17}。保存于 ${updatedAt}`;
+}
+
+function getGenderLabel(gender) {
+  return GENDER_OPTIONS.find((option) => option.id === gender)?.label ?? "不说明";
 }
 
 function EffectChips({ effects, progress }) {

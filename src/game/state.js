@@ -7,6 +7,10 @@ export const SAVE_SLOTS_KEY = "research-road-save-slots-v1";
 export const ACTIVE_SAVE_SLOT_KEY = "research-road-active-slot-v1";
 export const SAVE_SLOT_COUNT = 3;
 export const MAX_LOGS = 80;
+export const DEFAULT_PROFILE = {
+  name: "未命名",
+  gender: "undisclosed",
+};
 
 const START_LOG = "高三开始了。你把目标写在便签上：先考上一所好大学。";
 
@@ -56,6 +60,7 @@ export function shouldShowEnding(game) {
 export function createInitialGame(overrides = {}) {
   return {
     screen: "intro",
+    profile: { ...DEFAULT_PROFILE },
     stageIndex: 0,
     turn: 1,
     ap: STAGES[0].ap,
@@ -131,6 +136,7 @@ export function normalizeSavedGame(saved) {
   const next = {
     ...base,
     ...saved,
+    profile: normalizeProfile(saved.profile),
     stageIndex,
     turn: Number.isInteger(saved.turn) ? Math.max(1, Math.min(saved.turn, stage.turns)) : base.turn,
     ap: Number.isFinite(saved.ap) ? Math.max(0, saved.ap) : base.ap,
@@ -169,4 +175,12 @@ export function normalizeSavedGame(saved) {
   }
 
   return next;
+}
+
+function normalizeProfile(profile) {
+  if (!profile || typeof profile !== "object") return { ...DEFAULT_PROFILE };
+
+  const name = typeof profile.name === "string" && profile.name.trim() ? profile.name.trim().slice(0, 12) : DEFAULT_PROFILE.name;
+  const gender = ["male", "female", "undisclosed"].includes(profile.gender) ? profile.gender : DEFAULT_PROFILE.gender;
+  return { name, gender };
 }

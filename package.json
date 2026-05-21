@@ -8,6 +8,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "simulate": "node scripts/simulate.js",
+    "balance": "node scripts/balance-simulate.js",
+    "check:engine": "node scripts/check-engine-flow.js",
+    "check:graduate": "node scripts/check-graduate-flow.js",
+    "check:undergraduate": "node scripts/check-undergraduate-regression.js",
+    "check:data": "node scripts/check-data-integrity.js",
+    "check": "npm run check:data && npm run check:graduate && npm run check:undergraduate && npm run check:engine && npm run simulate -- 500",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"

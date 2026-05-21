@@ -117,7 +117,7 @@ function App() {
   }, [activeSlotId]);
 
   useEffect(() => {
-    if (!activeSlotId || game.screen === "intro") return;
+    if (!activeSlotId || game.screen !== "play") return;
     const currentSlots = normalizeSaveSlots(parseStorageJson(SAVE_SLOTS_KEY, []));
     localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(saveGameToSlot(currentSlots, activeSlotId, game)));
   }, [activeSlotId, game]);
@@ -156,7 +156,7 @@ function App() {
       startGame(activeSlotId, { confirmOverwrite: false });
       return;
     }
-    setGame(createInitialGame());
+    setGame({ ...createInitialGame(), screen: "home" });
   }
 
   function deleteSlot(slotId) {
@@ -167,14 +167,18 @@ function App() {
 
     if (activeSlotId === slotId) {
       setActiveSlotId(null);
-      setGame(createInitialGame());
+      setGame({ ...createInitialGame(), screen: "slots" });
     }
     setSaveSlots((current) => clearSaveSlot(current, slotId));
   }
 
   function returnToSlots() {
     setSaveSlots(loadSaveSlots());
-    setGame((current) => ({ ...current, screen: "intro" }));
+    setGame((current) => ({ ...current, screen: "slots" }));
+  }
+
+  function returnHome() {
+    setGame((current) => ({ ...current, screen: "home" }));
   }
 
   function handleAction(item) {
@@ -189,16 +193,45 @@ function App() {
     setGame((current) => resolveGraduateRouteChoice(current, route));
   }
 
-  if (game.screen === "intro") {
+  if (game.screen === "intro" || game.screen === "home") {
+    return (
+      <main className="intro">
+        <section className="intro-hero">
+          <div className="home-layout">
+            <div className="home-copy">
+              <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
+              <h1>科研之路</h1>
+              <p className="intro-copy">
+                从高中开始，在考试、专业选择、实验室、论文、基金、头衔和学术声望之间做长期取舍。你未必拿到所有头衔，但你的工作可能成为后来者绕不开的坐标。
+              </p>
+              <div className="intro-actions">
+                <button className="primary" onClick={() => setGame((current) => ({ ...current, screen: "slots" }))}>
+                  进入存档
+                </button>
+              </div>
+            </div>
+            <div className="home-panel">
+              <p className="slot-kicker">当前版本</p>
+              <h2>从学生到科研共同体的一员</h2>
+              <p>游戏会记录你的每次选择：稳妥路线、冒险押注、现实压力和那些没有被奖项命名的贡献。</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (game.screen === "slots") {
     return (
       <main className="intro">
         <section className="intro-hero">
           <div>
-            <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
-            <h1>科研之路</h1>
-            <p className="intro-copy">
-              从高中开始，在考试、专业选择、实验室、论文、基金和学术声望之间做长期取舍，最终目标是成为院士。
-            </p>
+            <p className="eyebrow">存档管理</p>
+            <h1>选择科研人生</h1>
+            <p className="intro-copy">选择一个存档继续，或从高三重新开始一段新的科研道路。</p>
+            <div className="intro-actions">
+              <button className="secondary" onClick={returnHome}>返回首页</button>
+            </div>
             <SaveSlotList slots={saveSlots} onStart={startGame} onContinue={continueGame} onDelete={deleteSlot} />
           </div>
         </section>
@@ -471,9 +504,12 @@ function GraduateRouteModal({ game, routes, onChoose }) {
                     <strong>{route.name}</strong>
                     <span>{route.track}</span>
                   </div>
-                  <b>{route.ending ? "确定" : `${Math.round(chance * 100)}%`}</b>
+                  <b>{route.ending ? "确定" : `成功率 ${Math.round(chance * 100)}%`}</b>
                 </div>
                 <p>{route.desc}</p>
+                {!route.ending && (
+                  <p className="route-chance-note">成功率代表当前积累走通这条路径的概率；失败会进入该路线的备选分支，不会直接结局。</p>
+                )}
                 {route.requirements.length > 0 && (
                   <div className="route-requirements">
                     {route.requirements.map((requirement) => {

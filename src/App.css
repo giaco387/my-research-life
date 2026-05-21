@@ -23,6 +23,37 @@
   max-width: 760px;
 }
 
+.home-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 32px;
+  align-items: end;
+  max-width: 1080px !important;
+}
+
+.home-copy {
+  max-width: 680px;
+}
+
+.home-panel {
+  padding: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.35);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.home-panel h2 {
+  margin: 0 0 10px;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.home-panel p {
+  margin: 0;
+  color: #dbeafe;
+  line-height: 1.65;
+}
+
 .eyebrow {
   margin: 0 0 10px;
   color: #7dd3fc;
@@ -557,6 +588,12 @@ button:disabled {
   line-height: 1.6;
 }
 
+.route-chance-note {
+  margin: 8px 0 0;
+  color: #0369a1 !important;
+  font-size: 12px;
+}
+
 .route-requirements {
   display: flex;
   flex-wrap: wrap;
@@ -600,6 +637,10 @@ button:disabled {
 
   .intro h1 {
     font-size: 42px;
+  }
+
+  .home-layout {
+    grid-template-columns: 1fr;
   }
 
   .topbar,

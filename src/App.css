@@ -601,6 +601,33 @@ button:disabled {
   gap: 10px;
 }
 
+.profile-stat {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.profile-stat span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profile-stat strong {
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.profile-stat.danger {
+  border-color: #fecaca;
+  background: #fff7ed;
+}
+
 .profile-section {
   padding: 14px;
   border: 1px solid #cbd5e1;
@@ -617,6 +644,18 @@ button:disabled {
 .profile-section-body {
   display: grid;
   gap: 10px;
+}
+
+.profile-record-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-empty {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .career-line {
@@ -1091,6 +1130,10 @@ button:disabled {
   }
 
   .profile-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-record-grid {
     grid-template-columns: 1fr;
   }
 

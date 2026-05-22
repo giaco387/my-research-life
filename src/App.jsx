@@ -635,15 +635,28 @@ function ProfilePortrait({ game, stage }) {
 
 function ProfileModal({ game, stage, statGroups, onClose }) {
   const career = game.career ?? {};
-  const papers = [
-    ["录用论文", game.progress.acceptedPapers ?? 0],
-    ["高影响论文", game.progress.highImpactPapers ?? 0],
-    ["代表作", game.progress.representativeWorks ?? 0],
-  ];
+  const stageIndex = game.stageIndex ?? 0;
   const students = career.students ?? {};
   const faculty = career.faculty ?? {};
   const grants = career.grants ?? {};
   const teamTitles = career.teamTitles ?? {};
+  const careerEntries = [
+    { label: "录用论文", value: game.progress.acceptedPapers ?? 0, minStageIndex: 2 },
+    { label: "高影响论文", value: game.progress.highImpactPapers ?? 0, minStageIndex: 3 },
+    { label: "代表作", value: game.progress.representativeWorks ?? 0, minStageIndex: 2 },
+    { label: "学术信用", value: game.progress.integrity ?? 0, minStageIndex: 3 },
+    { label: "导师", value: career.mentor ?? "暂无", minStageIndex: 1 },
+    { label: "婚姻", value: career.maritalStatus ?? "未婚", minStageIndex: 4 },
+    { label: "后代", value: career.children ?? 0, minStageIndex: 4 },
+    { label: "学生", value: `硕${students.master ?? 0} / 博${students.phd ?? 0} / 博后${students.postdoc ?? 0}`, minStageIndex: 4 },
+    { label: "团队教师", value: `讲师${faculty.lecturer ?? 0} / 副高${faculty.associateProfessor ?? 0} / 正高${faculty.professor ?? 0}`, minStageIndex: 4 },
+    { label: "国家基金", value: `申请${grants.applications ?? 0} / 资助${grants.funded ?? 0}`, minStageIndex: 4 },
+    { label: "基金类型", value: `青年${grants.youth ?? 0} / 面上${grants.general ?? 0} / 重点${grants.key ?? 0} / 重大${grants.major ?? 0}`, minStageIndex: 4 },
+    { label: "本人帽子", value: career.selfTitles?.length ? career.selfTitles.join("、") : "暂无", minStageIndex: 5 },
+    { label: "人才项目", value: `${game.progress.talentTitles ?? 0}`, minStageIndex: 5 },
+    { label: "同行认可", value: `${game.progress.peerRecognition ?? 0}`, minStageIndex: 5 },
+    { label: "团队帽子", value: `优青${teamTitles.youqing ?? 0} / 杰青${teamTitles.jieqing ?? 0} / 长青${teamTitles.changjiangYoung ?? 0} / 长特${teamTitles.changjiangProfessor ?? 0}`, minStageIndex: 6 },
+  ].filter((item) => stageIndex >= item.minStageIndex);
 
   return (
     <div className="modal-backdrop" onMouseDown={(event) => {
@@ -675,7 +688,7 @@ function ProfileModal({ game, stage, statGroups, onClose }) {
                 {statGroups.map((group, index) => (
                   <div className="profile-stat-group" key={index}>
                     {group.map((key) => (
-                      <StatBar key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
+                      <ProfileStat key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
                     ))}
                   </div>
                 ))}
@@ -683,19 +696,15 @@ function ProfileModal({ game, stage, statGroups, onClose }) {
             </ProfileSection>
 
             <ProfileSection title="履历状态">
-              {papers.map(([label, value]) => <CareerLine key={label} label={label} value={value} />)}
-              <CareerLine label="本人帽子" value={career.selfTitles?.length ? career.selfTitles.join("、") : "暂无"} />
-              <CareerLine label="人才项目" value={`${game.progress.talentTitles ?? 0}`} />
-              <CareerLine label="同行认可" value={`${game.progress.peerRecognition ?? 0}`} />
-              <CareerLine label="学术信用" value={`${game.progress.integrity ?? 0}`} />
-              <CareerLine label="婚姻" value={career.maritalStatus ?? "未婚"} />
-              <CareerLine label="后代" value={career.children ?? 0} />
-              <CareerLine label="导师" value={career.mentor ?? "暂无"} />
-              <CareerLine label="学生" value={`硕${students.master ?? 0} / 博${students.phd ?? 0} / 博后${students.postdoc ?? 0}`} />
-              <CareerLine label="团队教师" value={`讲师${faculty.lecturer ?? 0} / 副高${faculty.associateProfessor ?? 0} / 正高${faculty.professor ?? 0}`} />
-              <CareerLine label="团队帽子" value={`优青${teamTitles.youqing ?? 0} / 杰青${teamTitles.jieqing ?? 0} / 长青${teamTitles.changjiangYoung ?? 0} / 长特${teamTitles.changjiangProfessor ?? 0}`} />
-              <CareerLine label="国家基金" value={`申请${grants.applications ?? 0} / 资助${grants.funded ?? 0}`} />
-              <CareerLine label="基金类型" value={`青年${grants.youth ?? 0} / 面上${grants.general ?? 0} / 重点${grants.key ?? 0} / 重大${grants.major ?? 0}`} />
+              {careerEntries.length > 0 ? (
+                <div className="profile-record-grid">
+                  {careerEntries.map((item) => (
+                    <CareerLine key={item.label} label={item.label} value={item.value} />
+                  ))}
+                </div>
+              ) : (
+                <p className="profile-empty">当前阶段暂无可展示的履历内容。</p>
+              )}
             </ProfileSection>
           </div>
         </div>
@@ -713,21 +722,11 @@ function ProfileSection({ title, children }) {
   );
 }
 
-function StatBar({ label, value, danger }) {
-  const pct = clamp(value);
-  const alert = danger ? value >= 75 : value <= 18;
+function ProfileStat({ label, value, danger }) {
   return (
-    <div className="stat-row">
-      <div className="stat-meta">
-        <span>{label}</span>
-        <strong>{value}</strong>
-      </div>
-      <div className="meter">
-        <div
-          className={danger ? "meter-fill pressure" : alert ? "meter-fill alert" : "meter-fill"}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+    <div className={danger ? "profile-stat danger" : "profile-stat"}>
+      <span>{label}</span>
+      <strong>{value}</strong>
     </div>
   );
 }

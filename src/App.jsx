@@ -117,7 +117,7 @@ function App() {
   const [game, setGame] = useState(() => createInitialGame({ screen: "home" }));
   const [pendingSlotId, setPendingSlotId] = useState(null);
   const [showDevOverview, setShowDevOverview] = useState(false);
-  const [showCareerStatus, setShowCareerStatus] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
   useEffect(() => {
@@ -423,15 +423,7 @@ function App() {
 
       <div className="game-grid">
         <aside className="panel stats-panel">
-          <h2>角色状态</h2>
-          {statGroups.map((group, index) => (
-            <div className="stat-group" key={index}>
-              {group.map((key) => (
-                <StatBar key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
-              ))}
-            </div>
-          ))}
-          <CareerStatus game={game} expanded={showCareerStatus} onToggle={() => setShowCareerStatus((value) => !value)} />
+          <ProfileCard game={game} stage={stage} onOpen={() => setShowProfileModal(true)} />
         </aside>
 
         <section className="main-column">
@@ -493,6 +485,15 @@ function App() {
 
       {game.pendingGraduateChoice && (
         <GraduateRouteModal game={game} routes={GRADUATE_ROUTES} onChoose={handleGraduateRoute} />
+      )}
+
+      {showProfileModal && (
+        <ProfileModal
+          game={game}
+          stage={stage}
+          statGroups={statGroups}
+          onClose={() => setShowProfileModal(false)}
+        />
       )}
 
       {shouldShowEnding(game) && (
@@ -601,6 +602,117 @@ function StageVisual({ stage }) {
   );
 }
 
+function ProfileCard({ game, stage, onOpen }) {
+  const career = game.career ?? {};
+  const title = career.selfTitles?.[career.selfTitles.length - 1] ?? stage.subtitle;
+  return (
+    <button className="profile-card" type="button" onClick={onOpen}>
+      <div className="id-photo small" aria-hidden="true">
+        <ProfilePortrait game={game} stage={stage} />
+      </div>
+      <div>
+        <p className="slot-kicker">角色档案</p>
+        <h2>{game.profile?.name ?? DEFAULT_PROFILE.name}</h2>
+        <span>{game.age ?? 17} 岁 / {getGenderLabel(game.profile?.gender)} / {title}</span>
+      </div>
+      <strong>查看</strong>
+    </button>
+  );
+}
+
+function ProfilePortrait({ game, stage }) {
+  const genderClass = game.profile?.gender === "female" ? "female" : game.profile?.gender === "male" ? "male" : "neutral";
+  const careerClass = stage.id === "high_school" || stage.id === "undergraduate" ? "student" : stage.id === "master" || stage.id === "phd" ? "researcher" : "faculty";
+  return (
+    <div className={`portrait-face ${genderClass} ${careerClass}`}>
+      <span className="portrait-hair" />
+      <span className="portrait-head" />
+      <span className="portrait-body" />
+      <span className="portrait-badge" />
+    </div>
+  );
+}
+
+function ProfileModal({ game, stage, statGroups, onClose }) {
+  const career = game.career ?? {};
+  const papers = [
+    ["录用论文", game.progress.acceptedPapers ?? 0],
+    ["高影响论文", game.progress.highImpactPapers ?? 0],
+    ["代表作", game.progress.representativeWorks ?? 0],
+  ];
+  const students = career.students ?? {};
+  const faculty = career.faculty ?? {};
+  const grants = career.grants ?? {};
+  const teamTitles = career.teamTitles ?? {};
+
+  return (
+    <div className="modal-backdrop" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section className="modal profile-modal" aria-labelledby="profile-modal-title" aria-modal="true" role="dialog" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-heading">
+          <div>
+            <p className="eyebrow">角色档案</p>
+            <h2 id="profile-modal-title">{game.profile?.name ?? DEFAULT_PROFILE.name}</h2>
+          </div>
+          <button className="secondary compact" type="button" onClick={onClose}>关闭</button>
+        </div>
+
+        <div className="profile-layout">
+          <aside className="profile-identity">
+            <div className="id-photo">
+              <ProfilePortrait game={game} stage={stage} />
+            </div>
+            <CareerLine label="阶段" value={stage.name} />
+            <CareerLine label="年龄" value={`${game.age ?? 17} 岁`} />
+            <CareerLine label="性别" value={getGenderLabel(game.profile?.gender)} />
+            <CareerLine label="当前身份" value={career.selfTitles?.[career.selfTitles.length - 1] ?? stage.subtitle} />
+          </aside>
+
+          <div className="profile-columns">
+            <ProfileSection title="角色状态">
+              <div className="profile-stat-grid">
+                {statGroups.map((group, index) => (
+                  <div className="profile-stat-group" key={index}>
+                    {group.map((key) => (
+                      <StatBar key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </ProfileSection>
+
+            <ProfileSection title="履历状态">
+              {papers.map(([label, value]) => <CareerLine key={label} label={label} value={value} />)}
+              <CareerLine label="本人帽子" value={career.selfTitles?.length ? career.selfTitles.join("、") : "暂无"} />
+              <CareerLine label="人才项目" value={`${game.progress.talentTitles ?? 0}`} />
+              <CareerLine label="同行认可" value={`${game.progress.peerRecognition ?? 0}`} />
+              <CareerLine label="学术信用" value={`${game.progress.integrity ?? 0}`} />
+              <CareerLine label="婚姻" value={career.maritalStatus ?? "未婚"} />
+              <CareerLine label="后代" value={career.children ?? 0} />
+              <CareerLine label="导师" value={career.mentor ?? "暂无"} />
+              <CareerLine label="学生" value={`硕${students.master ?? 0} / 博${students.phd ?? 0} / 博后${students.postdoc ?? 0}`} />
+              <CareerLine label="团队教师" value={`讲师${faculty.lecturer ?? 0} / 副高${faculty.associateProfessor ?? 0} / 正高${faculty.professor ?? 0}`} />
+              <CareerLine label="团队帽子" value={`优青${teamTitles.youqing ?? 0} / 杰青${teamTitles.jieqing ?? 0} / 长青${teamTitles.changjiangYoung ?? 0} / 长特${teamTitles.changjiangProfessor ?? 0}`} />
+              <CareerLine label="国家基金" value={`申请${grants.applications ?? 0} / 资助${grants.funded ?? 0}`} />
+              <CareerLine label="基金类型" value={`青年${grants.youth ?? 0} / 面上${grants.general ?? 0} / 重点${grants.key ?? 0} / 重大${grants.major ?? 0}`} />
+            </ProfileSection>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ProfileSection({ title, children }) {
+  return (
+    <section className="profile-section">
+      <h3>{title}</h3>
+      <div className="profile-section-body">{children}</div>
+    </section>
+  );
+}
+
 function StatBar({ label, value, danger }) {
   const pct = clamp(value);
   const alert = danger ? value >= 75 : value <= 18;
@@ -631,43 +743,6 @@ function ProgressBar({ label, value }) {
         <div className="meter-fill progress" style={{ width: `${clamp(value)}%` }} />
       </div>
     </div>
-  );
-}
-
-function CareerStatus({ game, expanded, onToggle }) {
-  const career = game.career ?? {};
-  const papers = [
-    ["录用", game.progress.acceptedPapers ?? 0],
-    ["高影响", game.progress.highImpactPapers ?? 0],
-    ["代表作", game.progress.representativeWorks ?? 0],
-  ];
-  const students = career.students ?? {};
-  const faculty = career.faculty ?? {};
-  const grants = career.grants ?? {};
-  const teamTitles = career.teamTitles ?? {};
-
-  return (
-    <section className="career-status">
-      <button className="career-toggle" type="button" onClick={onToggle} aria-expanded={expanded}>
-        <span>
-          <b>履历状态</b>
-          <small>{papers.map(([label, value]) => `${label}${value}`).join(" / ")}，基金{grants.funded ?? 0}</small>
-        </span>
-        <strong>{expanded ? "收起" : "展开"}</strong>
-      </button>
-      {expanded && (
-        <div className="career-list">
-          <CareerLine label="论文" value={papers.map(([label, value]) => `${label}${value}`).join(" / ")} />
-          <CareerLine label="家庭" value={`${career.maritalStatus ?? "未婚"} / 后代 ${career.children ?? 0}`} />
-          <CareerLine label="导师" value={career.mentor ?? "暂无"} />
-          <CareerLine label="本人帽子" value={career.selfTitles?.length ? career.selfTitles.join("、") : "暂无"} />
-          <CareerLine label="学生" value={`硕${students.master ?? 0} / 博${students.phd ?? 0} / 博后${students.postdoc ?? 0}`} />
-          <CareerLine label="团队教师" value={`讲师${faculty.lecturer ?? 0} / 副高${faculty.associateProfessor ?? 0} / 正高${faculty.professor ?? 0}`} />
-          <CareerLine label="团队帽子" value={`优青${teamTitles.youqing ?? 0} / 杰青${teamTitles.jieqing ?? 0} / 长青${teamTitles.changjiangYoung ?? 0} / 长特${teamTitles.changjiangProfessor ?? 0}`} />
-          <CareerLine label="国家基金" value={`申请${grants.applications ?? 0} / 资助${grants.funded ?? 0}`} />
-        </div>
-      )}
-    </section>
   );
 }
 

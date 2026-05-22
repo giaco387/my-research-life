@@ -443,20 +443,14 @@ button:disabled {
   border-top: 1px solid #e2e8f0;
 }
 
-.career-status {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.career-toggle {
+.profile-card {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
   width: 100%;
-  min-height: 54px;
-  padding: 10px 12px;
+  min-height: 104px;
+  padding: 14px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #ffffff;
@@ -465,32 +459,164 @@ button:disabled {
   text-align: left;
 }
 
-.career-toggle b,
-.career-toggle small {
-  display: block;
+.profile-card:hover {
+  border-color: #0284c7;
+  box-shadow: 0 10px 30px rgba(2, 132, 199, 0.16);
 }
 
-.career-toggle b {
-  font-size: 15px;
+.profile-card h2 {
+  margin: 0 0 6px;
 }
 
-.career-toggle small {
-  margin-top: 4px;
+.profile-card span {
   color: #64748b;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-.career-toggle > strong {
+.profile-card > strong {
   flex: 0 0 auto;
   color: #0369a1;
   font-size: 13px;
 }
 
-.career-list {
+.id-photo {
+  position: relative;
   display: grid;
-  gap: 8px;
-  margin-top: 10px;
+  place-items: center;
+  width: 132px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e0f2fe, #f8fafc);
+}
+
+.id-photo.small {
+  flex: 0 0 58px;
+  width: 58px;
+}
+
+.portrait-face {
+  position: relative;
+  width: 76%;
+  height: 82%;
+}
+
+.portrait-head,
+.portrait-hair,
+.portrait-body,
+.portrait-badge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.portrait-head {
+  top: 18%;
+  width: 44%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f4c7a1;
+  box-shadow: inset 0 -5px 0 rgba(120, 53, 15, 0.08);
+  z-index: 2;
+}
+
+.portrait-hair {
+  top: 13%;
+  width: 52%;
+  height: 28%;
+  border-radius: 999px 999px 38% 38%;
+  background: #1f2937;
+  z-index: 3;
+}
+
+.portrait-body {
+  bottom: 6%;
+  width: 82%;
+  height: 42%;
+  border-radius: 40% 40% 10px 10px;
+  background: linear-gradient(180deg, #1e40af, #0f172a);
+  z-index: 1;
+}
+
+.portrait-badge {
+  bottom: 22%;
+  width: 16%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f8fafc;
+  z-index: 4;
+}
+
+.portrait-face.female .portrait-hair {
+  height: 36%;
+  border-radius: 999px 999px 48% 48%;
+}
+
+.portrait-face.neutral .portrait-body {
+  background: linear-gradient(180deg, #0f766e, #0f172a);
+}
+
+.portrait-face.faculty .portrait-body {
+  background: linear-gradient(180deg, #334155, #111827);
+}
+
+.portrait-face.researcher .portrait-body {
+  background: linear-gradient(180deg, #0f766e, #0f172a);
+}
+
+.profile-modal {
+  width: min(1120px, 100%);
+  max-height: min(880px, calc(100vh - 40px));
+  overflow: auto;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.profile-identity {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.profile-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-stat-group {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-section {
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.profile-section h3 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.profile-section-body {
+  display: grid;
+  gap: 10px;
 }
 
 .career-line {
@@ -905,6 +1031,14 @@ button:disabled {
   .log-list {
     max-height: 280px;
   }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-columns {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
@@ -954,5 +1088,13 @@ button:disabled {
 
   .dev-overview-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-modal {
+    max-height: calc(100vh - 24px);
   }
 }

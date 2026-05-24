@@ -143,6 +143,7 @@ function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLogModal, setShowLogModal] = useState(false);
   const [openPlayPanel, setOpenPlayPanel] = useState(null);
+  const [seenStageScenes, setSeenStageScenes] = useState(() => new Set());
   const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
   useEffect(() => {
@@ -165,6 +166,7 @@ function App() {
 
   const stage = STAGES[game.stageIndex];
   const actions = ACTIONS[stage.id] ?? [];
+  const activePlayPanel = game.screen === "play" && !seenStageScenes.has(game.stageIndex) ? "scene" : openPlayPanel;
   const statGroups = useMemo(
     () => [
       ["knowledge", "perseverance", "focus", "health", "pressure", "eq", "money", "reputation"],
@@ -201,6 +203,7 @@ function createCharacter(character) {
     };
     setActiveSlotId(slotId);
     setPendingSlotId(null);
+    setSeenStageScenes(new Set());
     setGame(next);
     setSaveSlots((current) => saveGameToSlot(current, slotId, next));
   }
@@ -208,6 +211,7 @@ function createCharacter(character) {
   function continueGame(slot) {
     if (!slot.game) return;
     setActiveSlotId(slot.id);
+    setSeenStageScenes(new Set());
     setGame({ ...normalizeSavedGame(slot.game), screen: "play" });
   }
 
@@ -251,12 +255,20 @@ function createCharacter(character) {
     setGame((current) => resolveEventChoice(current, option));
   }
 
+  function closePlayPanel() {
+    if (activePlayPanel === "scene") {
+      setSeenStageScenes((seen) => new Set([...seen, game.stageIndex]));
+    }
+    setOpenPlayPanel(null);
+  }
+
   function jumpToStage(stageId) {
     const stageIndex = STAGES.findIndex((item) => item.id === stageId);
     const targetStage = STAGES[stageIndex];
     if (!targetStage) return;
 
     setActiveSlotId(null);
+    setSeenStageScenes(new Set());
     setGame({
       ...createInitialGame({ screen: "play" }),
       stageIndex,
@@ -377,18 +389,14 @@ function createCharacter(character) {
   return (
     <main className="app-shell" style={{ "--game-cover": `url("${getStageImageSrc(stage.id)}")` }}>
       <VersionBadge />
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">{stage.subtitle}</p>
-          <h1>{game.profile?.name ?? DEFAULT_PROFILE.name}</h1>
-        </div>
-        {isDevMode && (
+      {isDevMode && (
+        <header className="topbar">
           <div className="top-actions">
             <button className="secondary" onClick={returnToSlots}>存档列表</button>
             <button className="secondary" onClick={resetGame}>重新开始</button>
           </div>
-        )}
-      </header>
+        </header>
+      )}
 
       <section className="map-caption">
         <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
@@ -396,23 +404,22 @@ function createCharacter(character) {
       </section>
 
       <nav className="play-toolbar" aria-label="游戏操作">
-        <button className={openPlayPanel === "scene" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(openPlayPanel === "scene" ? null : "scene")} type="button">处境</button>
-        <button className={openPlayPanel === "actions" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(openPlayPanel === "actions" ? null : "actions")} type="button">行动</button>
-        <button className={openPlayPanel === "growth" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(openPlayPanel === "growth" ? null : "growth")} type="button">成长</button>
+        <button className={activePlayPanel === "actions" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(activePlayPanel === "actions" ? null : "actions")} type="button">行动</button>
+        <button className={activePlayPanel === "growth" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(activePlayPanel === "growth" ? null : "growth")} type="button">成长</button>
         <button className="tool-button" onClick={() => setShowLogModal(true)} type="button">记录</button>
         <button className="tool-button" onClick={() => setShowProfileModal(true)} type="button">档案</button>
       </nav>
 
-      {openPlayPanel && (
+      {activePlayPanel && (
         <div className="play-panel-backdrop" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setOpenPlayPanel(null);
+          if (event.target === event.currentTarget) closePlayPanel();
         }}>
           <PlayPanel
             actions={actions}
             game={game}
             onAction={handleAction}
-            onClose={() => setOpenPlayPanel(null)}
-            panel={openPlayPanel}
+            onClose={closePlayPanel}
+            panel={activePlayPanel}
             stage={stage}
           />
         </div>

@@ -410,6 +410,10 @@ button:disabled {
   color: #4b321b;
 }
 
+.app-shell.has-side-dock {
+  padding-left: 170px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -458,7 +462,7 @@ button:disabled {
   max-width: 1440px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -547,14 +551,24 @@ button:disabled {
   border-top: 1px solid rgba(107, 72, 36, 0.28);
 }
 
-.profile-card {
+.side-dock {
+  position: fixed;
+  left: 12px;
+  top: 108px;
+  z-index: 15;
+  display: grid;
+  gap: 8px;
+  width: 142px;
+}
+
+.dock-card {
   display: flex;
   justify-content: space-between;
-  gap: 14px;
+  gap: 8px;
   align-items: center;
   width: 100%;
-  min-height: 104px;
-  padding: 14px;
+  min-height: 70px;
+  padding: 10px;
   border: 1px solid #b9955b;
   border-radius: 10px;
   background: linear-gradient(180deg, #fff8e7, #f1d9a6);
@@ -563,25 +577,45 @@ button:disabled {
   text-align: left;
 }
 
-.profile-card:hover {
+.dock-card:hover {
   border-color: #2f80c7;
   box-shadow: 0 10px 30px rgba(95, 65, 31, 0.18);
 }
 
-.profile-card h2 {
-  margin: 0 0 6px;
+.dock-card h2 {
+  margin: 0 0 3px;
+  font-size: 16px;
+  line-height: 1.1;
 }
 
-.profile-card span {
+.dock-card span {
+  display: -webkit-box;
+  overflow: hidden;
   color: #7c5a2f;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-.profile-card > strong {
+.dock-card > strong {
   flex: 0 0 auto;
   color: #1f7cc0;
-  font-size: 13px;
+  font-size: 11px;
+}
+
+.profile-card {
+  align-items: flex-start;
+}
+
+.profile-card .slot-kicker,
+.log-card .slot-kicker {
+  margin-bottom: 3px !important;
+  font-size: 11px;
+}
+
+.log-card {
+  min-height: 78px;
 }
 
 .id-photo {
@@ -598,8 +632,9 @@ button:disabled {
 }
 
 .id-photo.small {
-  flex: 0 0 58px;
-  width: 58px;
+  flex: 0 0 34px;
+  width: 34px;
+  border-radius: 7px;
 }
 
 .portrait-face {
@@ -1165,6 +1200,17 @@ button:disabled {
 }
 
 @media (max-width: 1100px) {
+  .app-shell.has-side-dock {
+    padding-left: 24px;
+  }
+
+  .side-dock {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(520px, 100%);
+    margin: 0 auto 14px;
+  }
+
   .game-grid {
     grid-template-columns: 1fr;
   }
@@ -1190,6 +1236,10 @@ button:disabled {
   .app-shell,
   .intro-hero {
     padding: 16px;
+  }
+
+  .app-shell.has-side-dock {
+    padding-left: 16px;
   }
 
   .intro h1 {

@@ -118,6 +118,7 @@ function App() {
   const [pendingSlotId, setPendingSlotId] = useState(null);
   const [showDevOverview, setShowDevOverview] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showLogModal, setShowLogModal] = useState(false);
   const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
   useEffect(() => {
@@ -388,7 +389,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell has-side-dock">
       <VersionBadge />
       <header className="topbar">
         <div>
@@ -400,6 +401,13 @@ function App() {
           <button className="secondary" onClick={resetGame}>重新开始</button>
         </div>
       </header>
+
+      <SideDock
+        game={game}
+        stage={stage}
+        onOpenLogs={() => setShowLogModal(true)}
+        onOpenProfile={() => setShowProfileModal(true)}
+      />
 
       <section className="status-band">
         <div>
@@ -425,10 +433,6 @@ function App() {
       </section>
 
       <div className="game-grid">
-        <aside className="panel stats-panel">
-          <ProfileCard game={game} stage={stage} onOpen={() => setShowProfileModal(true)} />
-        </aside>
-
         <section className="main-column">
           <StageVisual stage={stage} />
 
@@ -472,14 +476,6 @@ function App() {
           </div>
         </section>
 
-        <aside className="panel log-panel">
-          <h2>记录</h2>
-          <div className="log-list">
-            {game.logs.map((item, index) => (
-              <p key={`${item}-${index}`}>{item}</p>
-            ))}
-          </div>
-        </aside>
       </div>
 
       {game.activeEvent && (
@@ -497,6 +493,10 @@ function App() {
           statGroups={statGroups}
           onClose={() => setShowProfileModal(false)}
         />
+      )}
+
+      {showLogModal && (
+        <LogModal logs={game.logs} onClose={() => setShowLogModal(false)} />
       )}
 
       {shouldShowEnding(game) && (
@@ -524,6 +524,23 @@ function App() {
 
 function VersionBadge() {
   return <div className="version-badge">v{GAME_VERSION}</div>;
+}
+
+function SideDock({ game, stage, onOpenLogs, onOpenProfile }) {
+  const latestLog = game.logs?.[0] ?? "暂无记录。";
+  return (
+    <aside className="side-dock" aria-label="角色与记录">
+      <ProfileCard game={game} stage={stage} onOpen={onOpenProfile} />
+      <button className="dock-card log-card" type="button" onClick={onOpenLogs}>
+        <div>
+          <p className="slot-kicker">记录</p>
+          <h2>最新</h2>
+          <span>{latestLog}</span>
+        </div>
+        <strong>查看</strong>
+      </button>
+    </aside>
+  );
 }
 
 function DevTools({ onJumpStage, onOpenGraduate, onShowOverview }) {
@@ -609,7 +626,7 @@ function ProfileCard({ game, stage, onOpen }) {
   const career = game.career ?? {};
   const title = career.selfTitles?.[career.selfTitles.length - 1] ?? stage.subtitle;
   return (
-    <button className="profile-card" type="button" onClick={onOpen}>
+    <button className="dock-card profile-card" type="button" onClick={onOpen}>
       <div className="id-photo small" aria-hidden="true">
         <ProfilePortrait game={game} stage={stage} />
       </div>
@@ -620,6 +637,29 @@ function ProfileCard({ game, stage, onOpen }) {
       </div>
       <strong>查看</strong>
     </button>
+  );
+}
+
+function LogModal({ logs, onClose }) {
+  return (
+    <div className="modal-backdrop" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section className="modal log-modal" aria-labelledby="log-modal-title" aria-modal="true" role="dialog" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-heading">
+          <div>
+            <p className="eyebrow">记录</p>
+            <h2 id="log-modal-title">科研日志</h2>
+          </div>
+          <button className="secondary compact" type="button" onClick={onClose}>关闭</button>
+        </div>
+        <div className="log-list">
+          {logs.map((item, index) => (
+            <p key={`${item}-${index}`}>{item}</p>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 

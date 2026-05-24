@@ -149,6 +149,7 @@ function App() {
   const [showDevOverview, setShowDevOverview] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLogModal, setShowLogModal] = useState(false);
+  const [openPlayPanel, setOpenPlayPanel] = useState(null);
   const isDevMode = useMemo(() => new URLSearchParams(window.location.search).get("dev") === "1", []);
 
   useEffect(() => {
@@ -439,88 +440,29 @@ function createCharacter(character) {
         onOpenProfile={() => setShowProfileModal(true)}
       />
 
-      <div className="game-grid">
-        <section className="main-column">
-          <section className="panel story-panel">
-            <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
-            <h2>{stage.goal}</h2>
-            <p>{getTurnScene(stage, game)}</p>
-            <p className="ap-line">你还有 {game.ap} 点行动点。先想想这一回合要把时间花在哪里。</p>
-          </section>
+      <section className="map-caption">
+        <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
+        <h2>{stage.subtitle}</h2>
+      </section>
 
-          <details className="panel growth-panel">
-            <summary>
-              <span>成长面板</span>
-              <strong>查看阶段、进度和行动点</strong>
-            </summary>
-            <section className="status-band">
-              <div>
-                <span>阶段</span>
-                <strong>{stage.name}</strong>
-              </div>
-              <div>
-                <span>回合</span>
-                <strong>{game.turn} / {stage.turns}</strong>
-              </div>
-              <div>
-                <span>年龄</span>
-                <strong>{game.age ?? 17} 岁</strong>
-              </div>
-              <div>
-                <span>行动点</span>
-                <strong>{game.ap}</strong>
-              </div>
-            </section>
-            <div className="progress-list">
-              {Object.entries(stage.progress).map(([key, label]) => (
-                <ProgressBar key={key} label={label} value={game.progress[key]} />
-              ))}
-            </div>
-          </details>
+      <nav className="play-toolbar" aria-label="游戏操作">
+        <button className={openPlayPanel === "scene" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(openPlayPanel === "scene" ? null : "scene")} type="button">处境</button>
+        <button className={openPlayPanel === "actions" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(openPlayPanel === "actions" ? null : "actions")} type="button">行动</button>
+        <button className={openPlayPanel === "growth" ? "tool-button active" : "tool-button"} onClick={() => setOpenPlayPanel(openPlayPanel === "growth" ? null : "growth")} type="button">成长</button>
+        <button className="tool-button" onClick={() => setShowLogModal(true)} type="button">记录</button>
+        <button className="tool-button" onClick={() => setShowProfileModal(true)} type="button">档案</button>
+      </nav>
 
-          <div className="panel action-panel">
-            <div className="panel-heading">
-              <h2>这一回合做什么</h2>
-              <p className="turn-hint">选择会影响成长，但细节不必一开始就盯着看。</p>
-            </div>
-            <div className="actions-grid">
-              {actions.map((item) => (
-                <article
-                  className="action-card"
-                  key={item.id}
-                >
-                  <div className="action-title">
-                    <strong>{item.name}</strong>
-                    <span>{item.cost} AP</span>
-                  </div>
-                  <p>{item.desc}</p>
-                  <div className="action-footer">
-                    <button
-                      className="primary compact"
-                      disabled={!canPerformAction(game, item)}
-                      onClick={() => handleAction(item)}
-                      type="button"
-                    >
-                      选择
-                    </button>
-                  </div>
-                  <details className="action-details">
-                    <summary>查看影响</summary>
-                    {item.requirements?.length > 0 && (
-                      <p className="requirements">条件：{describeRequirements(item.requirements).join("，")}</p>
-                    )}
-                    {item.risk && (
-                      <p className="risk-note">风险：{Math.round(item.risk.chance * 100)}% 可能出现负面结果</p>
-                    )}
-                    <EffectChips effects={item.effects} progress={item.progress} />
-                  </details>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-      </div>
+      {openPlayPanel && (
+        <PlayPanel
+          actions={actions}
+          game={game}
+          onAction={handleAction}
+          onClose={() => setOpenPlayPanel(null)}
+          panel={openPlayPanel}
+          stage={stage}
+        />
+      )}
 
       {game.activeEvent && (
         <EventModal event={game.activeEvent} onChoose={handleEventChoice} />
@@ -583,6 +525,91 @@ function SideDock({ game, stage, onOpenLogs, onOpenProfile }) {
         </div>
         <strong>查看</strong>
       </button>
+    </aside>
+  );
+}
+
+function PlayPanel({ actions, game, onAction, onClose, panel, stage }) {
+  const title = panel === "actions" ? "这一回合做什么" : panel === "growth" ? "成长面板" : "当前处境";
+  return (
+    <aside className={`play-panel ${panel}`} aria-label={title}>
+      <div className="modal-heading">
+        <div>
+          <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
+          <h2>{title}</h2>
+        </div>
+        <button className="secondary compact" onClick={onClose} type="button">收起</button>
+      </div>
+
+      {panel === "scene" && (
+        <section className="story-panel bare">
+          <h2>{stage.goal}</h2>
+          <p>{getTurnScene(stage, game)}</p>
+          <p className="ap-line">你还有 {game.ap} 点行动点。先想想这一回合要把时间花在哪里。</p>
+        </section>
+      )}
+
+      {panel === "growth" && (
+        <>
+          <section className="status-band">
+            <div>
+              <span>阶段</span>
+              <strong>{stage.name}</strong>
+            </div>
+            <div>
+              <span>回合</span>
+              <strong>{game.turn} / {stage.turns}</strong>
+            </div>
+            <div>
+              <span>年龄</span>
+              <strong>{game.age ?? 17} 岁</strong>
+            </div>
+            <div>
+              <span>行动点</span>
+              <strong>{game.ap}</strong>
+            </div>
+          </section>
+          <div className="progress-list">
+            {Object.entries(stage.progress).map(([key, label]) => (
+              <ProgressBar key={key} label={label} value={game.progress[key]} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {panel === "actions" && (
+        <div className="actions-grid">
+          {actions.map((item) => (
+            <article className="action-card" key={item.id}>
+              <div className="action-title">
+                <strong>{item.name}</strong>
+                <span>{item.cost} AP</span>
+              </div>
+              <p>{item.desc}</p>
+              <div className="action-footer">
+                <button
+                  className="primary compact"
+                  disabled={!canPerformAction(game, item)}
+                  onClick={() => onAction(item)}
+                  type="button"
+                >
+                  选择
+                </button>
+              </div>
+              <details className="action-details">
+                <summary>查看影响</summary>
+                {item.requirements?.length > 0 && (
+                  <p className="requirements">条件：{describeRequirements(item.requirements).join("，")}</p>
+                )}
+                {item.risk && (
+                  <p className="risk-note">风险：{Math.round(item.risk.chance * 100)}% 可能出现负面结果</p>
+                )}
+                <EffectChips effects={item.effects} progress={item.progress} />
+              </details>
+            </article>
+          ))}
+        </div>
+      )}
     </aside>
   );
 }

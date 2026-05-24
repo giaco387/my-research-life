@@ -442,12 +442,15 @@ button:disabled {
 }
 
 .app-shell {
-  padding: 24px;
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 18px 20px 92px;
   color: #4b321b;
 }
 
 .app-shell.has-side-dock {
-  padding-left: 170px;
+  padding-left: 20px;
 }
 
 .topbar {
@@ -455,13 +458,25 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  max-width: 1440px;
-  margin: 0 auto 18px;
+  margin: 0;
+  color: #fff7ed;
+  text-shadow: 0 2px 14px rgba(53, 38, 24, 0.72);
 }
 
 .topbar h1 {
   margin: 0;
-  font-size: 38px;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.topbar .eyebrow {
+  color: #f8e0a7;
+}
+
+.top-actions .secondary {
+  border-color: rgba(255, 247, 237, 0.42);
+  background: rgba(53, 38, 24, 0.34);
+  color: #fff7ed;
 }
 
 .status-band {
@@ -493,13 +508,85 @@ button:disabled {
   font-size: 16px;
 }
 
-.game-grid {
-  max-width: 1440px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
+.map-caption {
+  position: fixed;
+  left: 50%;
+  bottom: 108px;
+  z-index: 12;
+  width: min(520px, calc(100vw - 40px));
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 247, 237, 0.22);
+  border-radius: 10px;
+  background: rgba(53, 38, 24, 0.42);
+  color: #fff7ed;
+  text-align: center;
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.map-caption .eyebrow {
+  margin-bottom: 4px;
+  color: #f8e0a7;
+}
+
+.map-caption h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.play-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 30;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: min(640px, calc(100vw - 32px));
+  padding: 10px;
+  border: 1px solid rgba(255, 247, 237, 0.24);
+  border-radius: 10px;
+  background: rgba(53, 38, 24, 0.58);
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+}
+
+.tool-button {
+  min-width: 74px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 247, 237, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 248, 231, 0.12);
+  color: #fff7ed;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.tool-button.active,
+.tool-button:hover {
+  background: #c9770a;
+  color: #ffffff;
+}
+
+.play-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 96px;
+  z-index: 28;
+  width: min(720px, calc(100vw - 48px));
+  max-height: min(720px, calc(100vh - 132px));
+  overflow: auto;
+  padding: 20px;
+  border: 2px solid rgba(107, 72, 36, 0.62);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff4d6, #ead2a0);
+  box-shadow: 0 24px 80px rgba(53, 38, 24, 0.36);
+}
+
+.play-panel.actions {
+  width: min(980px, calc(100vw - 48px));
 }
 
 .panel {
@@ -529,6 +616,10 @@ button:disabled {
 
 .story-panel {
   padding: 22px;
+}
+
+.story-panel.bare {
+  padding: 0;
 }
 
 .story-panel h2 {
@@ -1267,14 +1358,11 @@ button:disabled {
 
 @media (max-width: 1100px) {
   .app-shell.has-side-dock {
-    padding-left: 24px;
+    padding-left: 20px;
   }
 
   .side-dock {
-    position: static;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: min(520px, 100%);
-    margin: 0 auto 14px;
+    top: 90px;
   }
 
   .game-grid {
@@ -1309,7 +1397,31 @@ button:disabled {
   }
 
   .app-shell.has-side-dock {
-    padding-left: 16px;
+    padding: 14px 14px 92px;
+  }
+
+  .side-dock {
+    left: 10px;
+    top: 86px;
+    width: 124px;
+  }
+
+  .play-toolbar {
+    bottom: 12px;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .play-panel {
+    right: 12px;
+    bottom: 82px;
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 104px);
+  }
+
+  .map-caption {
+    bottom: 88px;
+    width: calc(100vw - 28px);
   }
 
   .intro h1 {

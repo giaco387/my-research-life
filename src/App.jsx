@@ -312,7 +312,7 @@ function App() {
               <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
               <h1>科研之路</h1>
               <p className="intro-copy">
-                从高中开始，在考试、专业选择、实验室、论文、基金、头衔和学术声望之间做长期取舍。你未必拿到所有头衔，但你的工作可能成为后来者绕不开的坐标。
+                一开始，你只是想选个好专业。后来你会发现论文、基金和头衔都会变成新的考题。这不是一场公平考试，但你仍然要交卷。
               </p>
               <div className="intro-actions">
                 <button className="primary" onClick={() => setGame((current) => ({ ...current, screen: "slots" }))}>

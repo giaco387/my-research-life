@@ -674,12 +674,8 @@ function ProfileModal({ game, statGroups, onClose }) {
           {activeTab === "stats" && (
             <ProfileSection title="角色状态">
               <div className="profile-stat-grid">
-                {statGroups.map((group, index) => (
-                  <div className="profile-stat-group" key={index}>
-                    {group.map((key) => (
-                      <ProfileStat key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
-                    ))}
-                  </div>
+                {statGroups.flat().map((key) => (
+                  <ProfileStat key={key} label={STAT_LABELS[key]} value={game.stats[key] ?? game.progress[key] ?? 0} danger={key === "pressure"} />
                 ))}
               </div>
             </ProfileSection>

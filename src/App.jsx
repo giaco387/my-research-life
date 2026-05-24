@@ -408,44 +408,48 @@ function App() {
         onOpenProfile={() => setShowProfileModal(true)}
       />
 
-      <section className="status-band">
-        <div>
-          <span>阶段</span>
-          <strong>{stage.name}</strong>
-        </div>
-        <div>
-          <span>回合</span>
-          <strong>{game.turn} / {stage.turns}</strong>
-        </div>
-        <div>
-          <span>年龄</span>
-          <strong>{game.age ?? 17} 岁</strong>
-        </div>
-        <div>
-          <span>行动点</span>
-          <strong>{game.ap}</strong>
-        </div>
-        <div className="goal">
-          <span>阶段目标</span>
-          <strong>{stage.goal}</strong>
-        </div>
-      </section>
-
       <div className="game-grid">
         <section className="main-column">
-          <div className="panel progress-panel">
-            <h2>阶段进度</h2>
+          <section className="panel story-panel">
+            <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
+            <h2>{stage.goal}</h2>
+            <p>你还有 {game.ap} 点行动点。先想想这一回合要把时间花在哪里。</p>
+          </section>
+
+          <details className="panel growth-panel">
+            <summary>
+              <span>成长面板</span>
+              <strong>查看阶段、进度和行动点</strong>
+            </summary>
+            <section className="status-band">
+              <div>
+                <span>阶段</span>
+                <strong>{stage.name}</strong>
+              </div>
+              <div>
+                <span>回合</span>
+                <strong>{game.turn} / {stage.turns}</strong>
+              </div>
+              <div>
+                <span>年龄</span>
+                <strong>{game.age ?? 17} 岁</strong>
+              </div>
+              <div>
+                <span>行动点</span>
+                <strong>{game.ap}</strong>
+              </div>
+            </section>
             <div className="progress-list">
               {Object.entries(stage.progress).map(([key, label]) => (
                 <ProgressBar key={key} label={label} value={game.progress[key]} />
               ))}
             </div>
-          </div>
+          </details>
 
           <div className="panel action-panel">
             <div className="panel-heading">
-              <h2>本回合行动</h2>
-              <p className="turn-hint">行动点不足以执行任何行动时，将自动进入下一回合。</p>
+              <h2>这一回合做什么</h2>
+              <p className="turn-hint">选择会影响成长，但细节不必一开始就盯着看。</p>
             </div>
             <div className="actions-grid">
               {actions.map((item) => (
@@ -460,13 +464,16 @@ function App() {
                     <span>{item.cost} AP</span>
                   </div>
                   <p>{item.desc}</p>
-                  {item.requirements?.length > 0 && (
-                    <p className="requirements">条件：{describeRequirements(item.requirements).join("，")}</p>
-                  )}
-                  {item.risk && (
-                    <p className="risk-note">风险：{Math.round(item.risk.chance * 100)}% 可能出现负面结果</p>
-                  )}
-                  <EffectChips effects={item.effects} progress={item.progress} />
+                  <details className="action-details" onClick={(event) => event.stopPropagation()}>
+                    <summary>查看影响</summary>
+                    {item.requirements?.length > 0 && (
+                      <p className="requirements">条件：{describeRequirements(item.requirements).join("，")}</p>
+                    )}
+                    {item.risk && (
+                      <p className="risk-note">风险：{Math.round(item.risk.chance * 100)}% 可能出现负面结果</p>
+                    )}
+                    <EffectChips effects={item.effects} progress={item.progress} />
+                  </details>
                 </button>
               ))}
             </div>

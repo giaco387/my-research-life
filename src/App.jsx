@@ -1002,7 +1002,7 @@ function EffectChips({ effects, progress }) {
     <div className="chips">
       {Object.entries({ ...effects, ...progress }).map(([key, value]) => (
         <span className={value >= 0 ? "chip up" : "chip down"} key={key}>
-          {STAT_LABELS[key] ?? key}{value > 0 ? "+" : ""}{value}
+          {STAT_LABELS[key] ?? "未知指标"}{value > 0 ? "+" : ""}{value}
         </span>
       ))}
     </div>

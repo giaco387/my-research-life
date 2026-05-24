@@ -21,6 +21,18 @@ export const STAT_LABELS = {
   talentTitles: "人才项目",
   peerRecognition: "同行认可",
   integrity: "学术信用",
+  exam: "高考准备度",
+  gpa: "学业完成度",
+  research: "科研入门度",
+  project: "课题完成度",
+  paper: "论文进度",
+  dissertation: "博士论文",
+  originality: "原创贡献",
+  fund: "基金积累",
+  team: "团队建设",
+  majorProject: "重大项目",
+  talent: "人才培养",
+  academyReview: "院士评审",
 };
 
 export const INITIAL_STATS = {

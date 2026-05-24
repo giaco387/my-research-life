@@ -15,7 +15,7 @@ export function applyDelta(source, delta, max = 100) {
 
 export function formatDelta(delta) {
   return Object.entries(delta)
-    .map(([key, value]) => `${STAT_LABELS[key] ?? key}${value > 0 ? "+" : ""}${value}`)
+    .map(([key, value]) => `${STAT_LABELS[key] ?? "未知指标"}${value > 0 ? "+" : ""}${value}`)
     .join("，");
 }
 

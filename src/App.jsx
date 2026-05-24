@@ -1,22 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { ACTIONS } from "./data/actions.js";
 import { ENDINGS } from "./data/endings.js";
-import { GRADUATE_ROUTES } from "./data/graduateRoutes.js";
 import { STAGES } from "./data/stages.js";
 import { STAT_LABELS } from "./data/stats.js";
 import packageInfo from "../package.json";
 import {
   canPerformAction,
   chooseEvent as resolveEventChoice,
-  chooseGraduateRoute as resolveGraduateRouteChoice,
   performAction as resolveAction,
 } from "./game/engine.js";
-import {
-  clamp,
-  getGraduateRouteChance,
-  getRequirementValue,
-  meetsGraduateRequirement,
-} from "./game/formulas.js";
+import { clamp } from "./game/formulas.js";
 import { describeRequirements } from "./game/requirements.js";
 import {
   ACTIVE_SAVE_SLOT_KEY,
@@ -258,10 +251,6 @@ function createCharacter(character) {
     setGame((current) => resolveEventChoice(current, option));
   }
 
-  function handleGraduateRoute(route) {
-    setGame((current) => resolveGraduateRouteChoice(current, route));
-  }
-
   function jumpToStage(stageId) {
     const stageIndex = STAGES.findIndex((item) => item.id === stageId);
     const targetStage = STAGES[stageIndex];
@@ -302,37 +291,6 @@ function createCharacter(character) {
     });
   }
 
-  function openGraduateDebug() {
-    const stageIndex = STAGES.findIndex((item) => item.id === "undergraduate");
-    const stage = STAGES[stageIndex];
-
-    setActiveSlotId(null);
-    setGame({
-      ...createInitialGame({ screen: "play" }),
-      stageIndex,
-      turn: stage.turns,
-      ap: 0,
-      age: getStageStartAge(stageIndex),
-      stats: {
-        ...createInitialGame().stats,
-        knowledge: 72,
-        perseverance: 70,
-        focus: 68,
-        pressure: 30,
-        reputation: 24,
-        literature: 28,
-        writing: 28,
-        money: 24,
-      },
-      progress: {
-        ...createInitialGame().progress,
-        gpa: 72,
-        research: 70,
-      },
-      pendingGraduateChoice: true,
-      logs: ["开发者速览：已打开本科毕业读研路线选择。"],
-    });
-  }
 
   if (game.screen === "intro" || game.screen === "home") {
     return (
@@ -359,7 +317,6 @@ function createCharacter(character) {
           {isDevMode && (
             <DevTools
               onJumpStage={jumpToStage}
-              onOpenGraduate={openGraduateDebug}
               onShowOverview={() => setShowDevOverview(true)}
             />
           )}
@@ -386,7 +343,6 @@ function createCharacter(character) {
           {isDevMode && (
             <DevTools
               onJumpStage={jumpToStage}
-              onOpenGraduate={openGraduateDebug}
               onShowOverview={() => setShowDevOverview(true)}
             />
           )}
@@ -409,7 +365,6 @@ function createCharacter(character) {
           {isDevMode && (
             <DevTools
               onJumpStage={jumpToStage}
-              onOpenGraduate={openGraduateDebug}
               onShowOverview={() => setShowDevOverview(true)}
             />
           )}
@@ -467,10 +422,6 @@ function createCharacter(character) {
         <EventModal event={game.activeEvent} onChoose={handleEventChoice} />
       )}
 
-      {game.pendingGraduateChoice && (
-        <GraduateRouteModal game={game} routes={GRADUATE_ROUTES} onChoose={handleGraduateRoute} />
-      )}
-
       {showProfileModal && (
         <ProfileModal
           game={game}
@@ -498,7 +449,6 @@ function createCharacter(character) {
       {isDevMode && (
         <DevTools
           onJumpStage={jumpToStage}
-          onOpenGraduate={openGraduateDebug}
           onShowOverview={() => setShowDevOverview(true)}
         />
       )}
@@ -596,7 +546,7 @@ function PlayPanel({ actions, game, onAction, onClose, panel, stage }) {
   );
 }
 
-function DevTools({ onJumpStage, onOpenGraduate, onShowOverview }) {
+function DevTools({ onJumpStage, onShowOverview }) {
   return (
     <aside className="dev-tools">
       <p className="slot-kicker">开发者速览</p>
@@ -606,7 +556,6 @@ function DevTools({ onJumpStage, onOpenGraduate, onShowOverview }) {
             {stage.name}
           </button>
         ))}
-        <button className="primary compact" onClick={onOpenGraduate}>读研选择</button>
         <button className="primary compact" onClick={onShowOverview}>内容总览</button>
       </div>
     </aside>
@@ -630,14 +579,6 @@ function DevOverview({ onClose }) {
             {STAGES.map((stage) => (
               <p key={stage.id}>
                 <strong>{stage.name}</strong>：{stage.turns} 回合，{stage.ap} AP，{ACTIONS[stage.id]?.length ?? 0} 个行动。
-              </p>
-            ))}
-          </section>
-          <section>
-            <h3>读研路线</h3>
-            {GRADUATE_ROUTES.map((route) => (
-              <p key={route.id}>
-                <strong>{route.name}</strong>：{route.track}
               </p>
             ))}
           </section>
@@ -1089,54 +1030,6 @@ function EventModal({ event, onChoose }) {
               <EffectChips effects={item.effects} progress={item.progress} />
             </button>
           ))}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function GraduateRouteModal({ game, routes, onChoose }) {
-  return (
-    <div className="modal-backdrop">
-      <section className="modal route-modal">
-        <p className="eyebrow">本科毕业去向</p>
-        <h2>选择读研路径</h2>
-        <p>
-          从这里开始，科研不再只是考试题。保研、考研、直博、海外申请和产业研发都不是单纯的优劣选项，
-          它们会改变你的训练节奏、资源网络和后续压力。
-        </p>
-        <div className="route-list">
-          {routes.map((route) => {
-            const chance = getGraduateRouteChance(game, route);
-            return (
-              <button className="route-card" key={route.id} onClick={() => onChoose(route)}>
-                <div className="route-card-header">
-                  <div>
-                    <strong>{route.name}</strong>
-                    <span>{route.track}</span>
-                  </div>
-                  <b>{route.ending ? "确定" : `成功率 ${Math.round(chance * 100)}%`}</b>
-                </div>
-                <p>{route.desc}</p>
-                {!route.ending && (
-                  <p className="route-chance-note">成功率代表当前积累走通这条路径的概率；失败会进入该路线的备选分支，不会直接结局。</p>
-                )}
-                {route.requirements.length > 0 && (
-                  <div className="route-requirements">
-                    {route.requirements.map((requirement) => {
-                      const met = meetsGraduateRequirement(game, requirement);
-                      return (
-                        <span className={met ? "route-req met" : "route-req"} key={`${route.id}-${requirement.key}`}>
-                          {requirement.label} {getRequirementValue(game, requirement)} / {requirement.min}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-                <EffectChips effects={route.successEffects} progress={route.successProgress} />
-              </button>
-            );
-          })}
         </div>
       </section>
     </div>

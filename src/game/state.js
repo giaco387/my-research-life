@@ -85,7 +85,7 @@ function normalizeStageIndex(saved) {
 }
 
 export function shouldShowEnding(game) {
-  return Boolean(game.ending) && isFinalStage(game) && !game.pendingGraduateChoice;
+  return Boolean(game.ending) && isFinalStage(game);
 }
 
 export function createInitialGame(overrides = {}) {
@@ -178,7 +178,7 @@ export function normalizeSavedGame(saved) {
     progress: { ...INITIAL_PROGRESS, ...(saved.progress ?? {}) },
     usedEvents: Array.isArray(saved.usedEvents) ? saved.usedEvents : [],
     activeEvent: saved.activeEvent ?? null,
-    pendingGraduateChoice: Boolean(saved.pendingGraduateChoice),
+    pendingGraduateChoice: false,
     pendingAdvance: Boolean(saved.pendingAdvance),
     ending: saved.ending ?? null,
     papers: Array.isArray(saved.papers) ? saved.papers : [],
@@ -188,18 +188,18 @@ export function normalizeSavedGame(saved) {
   };
 
   if (next.ending?.id === "industry_route") {
-    const undergraduateIndex = getStageIndex("undergraduate");
+    const masterIndex = getStageIndex("master");
     return appendLogs(
       {
         ...next,
-        stageIndex: undergraduateIndex,
-        turn: STAGES[undergraduateIndex].turns,
-        ap: 0,
+        stageIndex: masterIndex,
+        turn: 1,
+        ap: STAGES[masterIndex].ap,
         ending: null,
-        pendingGraduateChoice: true,
+        pendingGraduateChoice: false,
         pendingAdvance: false,
       },
-      ["存档修复：旧版本的本科产业结局已改为读研去向选择。"],
+      ["存档修复：旧版本的本科分支已直接接入硕士阶段。"],
     );
   }
 

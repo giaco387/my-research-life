@@ -29,49 +29,6 @@ export function getRequirementValue(game, requirement) {
   return source[requirement.key] ?? 0;
 }
 
-export function meetsGraduateRequirement(game, requirement) {
-  const value = getRequirementValue(game, requirement);
-  if (requirement.max !== undefined && value > requirement.max) return false;
-  return value >= requirement.min;
-}
-
-export function getGraduateRouteChance(game, route) {
-  if (route.ending) return 1;
-  if (!route.requirements?.length) {
-    const examReadiness = game.stats.knowledge * 0.28 + game.stats.focus * 0.22 + game.stats.perseverance * 0.28 - game.stats.pressure * 0.12;
-    return clamp(0.58 + examReadiness / 250, 0.45, 0.9);
-  }
-
-  const requirementScore =
-    route.requirements.reduce((sum, requirement) => {
-      const value = getRequirementValue(game, requirement);
-      return sum + clamp(value / requirement.min, 0, 1.25);
-    }, 0) / route.requirements.length;
-  const personalFit =
-    game.stats.perseverance * 0.18 +
-    game.stats.focus * 0.16 +
-    game.stats.eq * 0.08 -
-    game.stats.pressure * 0.12;
-
-  return clamp(0.18 + requirementScore * 0.52 + personalFit / 300, 0.12, 0.92);
-}
-
-export function resolveGraduateRoute(game, route, random = Math.random) {
-  const chance = getGraduateRouteChance(game, route);
-  const success = !!route.ending || random() <= chance;
-  return {
-    chance,
-    success,
-    text: success ? route.successText : route.failText,
-    effects: success ? route.successEffects : route.failEffects,
-    progress: success ? route.successProgress : route.failProgress,
-    nextStageId: success ? route.successStage : route.failStage,
-    ending: route.ending,
-    flags: success ? route.flags : route.failFlags,
-    career: success ? route.successCareer ?? route.career : route.failCareer ?? route.career,
-  };
-}
-
 export function stageBonus(stageId, stats, progress) {
   if (stageId === "high_school") {
     const score = progress.exam * 0.55 + stats.knowledge * 0.25 + stats.focus * 0.15 - stats.pressure * 0.08;

@@ -1,9 +1,9 @@
 import { ACTIONS } from "../data/actions.js";
 import { EVENTS } from "../data/events.js";
 import { STAGES } from "../data/stages.js";
-import { applyDelta, formatDelta, getEnding, paperReview, resolveGraduateRoute, stageBonus } from "./formulas.js";
+import { applyDelta, formatDelta, getEnding, paperReview, stageBonus } from "./formulas.js";
 import { meetsRequirements } from "./requirements.js";
-import { appendLogs, applyCareerEffects, getStage, getStageIndex, isFinalStage, shouldShowEnding } from "./state.js";
+import { appendLogs, applyCareerEffects, getStage, isFinalStage, shouldShowEnding } from "./state.js";
 
 export function canPerformAction(game, action) {
   const uses = game.actionUses?.[action.id] ?? 0;
@@ -91,20 +91,6 @@ export function settleStage(game) {
   const stats = applyDelta(game.stats, bonus.effects);
   const age = Math.min(80, (game.age ?? 17) + (finished.years ?? 1));
 
-  if (finished.id === "undergraduate") {
-    return appendLogs(
-      {
-        ...game,
-        stats,
-        age,
-        ending: null,
-        pendingAdvance: false,
-        pendingGraduateChoice: true,
-      },
-      [`阶段结算：${bonus.text}`, "本科结束：请选择读研路径。"],
-    );
-  }
-
   const nextStage = STAGES[game.stageIndex + 1];
   return appendLogs(
     {
@@ -189,55 +175,4 @@ export function chooseEvent(game, option) {
   );
 
   return game.pendingAdvance ? advanceTurn(resolved, { allowEvent: false }) : resolved;
-}
-
-export function chooseGraduateRoute(game, route, random = Math.random) {
-  if (!game.pendingGraduateChoice) return game;
-
-  const result = resolveGraduateRoute(game, route, random);
-  const stats = applyDelta(game.stats, result.effects);
-  const progress = applyDelta(game.progress, result.progress);
-  const career = applyCareerEffects(game.career, result.career);
-  const age = Math.min(80, (game.age ?? 17) + (route.ageDelta ?? 0));
-  const routeLog = `读研去向：${route.name}。${result.text}`;
-
-  if (result.ending) {
-    return appendLogs(
-      {
-        ...game,
-        stats,
-        progress,
-        career,
-        age,
-        ending: result.ending,
-        pendingGraduateChoice: false,
-        flags: { ...(game.flags ?? {}), ...(result.flags ?? {}) },
-      },
-      [routeLog, `结局：${result.ending.title}`],
-    );
-  }
-
-  const nextStageIndex = getStageIndex(result.nextStageId);
-  if (nextStageIndex < 0) {
-    throw new Error(`Unknown graduate route stage: ${result.nextStageId}`);
-  }
-
-  const nextStage = STAGES[nextStageIndex];
-  return appendLogs(
-    {
-      ...game,
-      stageIndex: nextStageIndex,
-      turn: 1,
-      ap: nextStage.ap,
-      age,
-      stats,
-      progress,
-      career,
-      ending: null,
-      pendingGraduateChoice: false,
-      pendingAdvance: false,
-      flags: { ...(game.flags ?? {}), ...(result.flags ?? {}) },
-    },
-    [routeLog, `进入${nextStage.name}阶段：${nextStage.goal}`],
-  );
 }

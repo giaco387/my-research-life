@@ -1,6 +1,5 @@
 import { ACTIONS } from "../src/data/actions.js";
-import { GRADUATE_ROUTES } from "../src/data/graduateRoutes.js";
-import { chooseEvent, chooseGraduateRoute, performAction, advanceTurn, canPerformAction } from "../src/game/engine.js";
+import { chooseEvent, performAction, advanceTurn, canPerformAction } from "../src/game/engine.js";
 import { createInitialGame, getStage, shouldShowEnding } from "../src/game/state.js";
 
 const runs = Number(process.argv[2] ?? 500);
@@ -288,20 +287,6 @@ function chooseEventOption(event, strategy, random) {
     .sort((a, b) => b.score - a.score)[0].choice;
 }
 
-function chooseRoute(game, strategy, random) {
-  if (strategy === STRATEGIES.random) return GRADUATE_ROUTES[Math.floor(random() * GRADUATE_ROUTES.length)];
-  return GRADUATE_ROUTES
-    .map((route) => {
-      const score =
-        evaluateDelta(route.successEffects, strategy.weights) +
-        evaluateDelta(route.successProgress, strategy.weights) +
-        (strategy.routeBias[route.id] ?? 0) +
-        random() * 0.4;
-      return { route, score };
-    })
-    .sort((a, b) => b.score - a.score)[0].route;
-}
-
 function summarizeFinal(game) {
   const p = game.progress;
   const s = game.stats;
@@ -332,8 +317,6 @@ function runOne(strategy, seed) {
   for (let guard = 0; guard < 1000; guard += 1) {
     if (game.activeEvent) {
       game = chooseEvent(game, chooseEventOption(game.activeEvent, strategy, random));
-    } else if (game.pendingGraduateChoice) {
-      game = chooseGraduateRoute(game, chooseRoute(game, strategy, random), random);
     } else if (shouldShowEnding(game)) {
       return { ending: game.ending.title, final: summarizeFinal(game) };
     } else {

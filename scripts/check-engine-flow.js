@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { ACTIONS } from "../src/data/actions.js";
 import { STAGES } from "../src/data/stages.js";
-import { advanceTurn, chooseGraduateRoute, performAction, settleStage } from "../src/game/engine.js";
+import { advanceTurn, performAction, settleStage } from "../src/game/engine.js";
 import { createInitialGame, getStageIndex, normalizeSavedGame, shouldShowEnding } from "../src/game/state.js";
 
 const highSchoolIndex = getStageIndex("high_school");
@@ -23,18 +23,10 @@ game = {
 };
 
 game = settleStage(game);
-assert.equal(game.pendingGraduateChoice, true);
+assert.equal(game.pendingGraduateChoice, false);
 assert.equal(game.ending, null);
 assert.equal(shouldShowEnding(game), false);
-
-const examRoute = { id: "exam_master" };
-const route = await import("../src/data/graduateRoutes.js").then(({ GRADUATE_ROUTES }) =>
-  GRADUATE_ROUTES.find((item) => item.id === examRoute.id),
-);
-game = chooseGraduateRoute(game, route, () => 0);
 assert.equal(game.stageIndex, masterIndex);
-assert.equal(game.pendingGraduateChoice, false);
-assert.equal(shouldShowEnding(game), false);
 
 const masterAction = ACTIONS.master.find((action) => action.id === "read");
 const afterAction = performAction({ ...game, ap: masterAction.cost }, masterAction, () => 0);

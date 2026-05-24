@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { ACTIONS } from "../src/data/actions.js";
 import { EVENTS } from "../src/data/events.js";
-import { GRADUATE_ROUTES } from "../src/data/graduateRoutes.js";
 import { STAGES } from "../src/data/stages.js";
 import { INITIAL_PROGRESS, INITIAL_STATS } from "../src/data/stats.js";
 
@@ -71,22 +70,6 @@ for (const [stageId, events] of Object.entries(EVENTS)) {
       assertDeltaKeys(choice.progress, `${stageId}.${event.id}.${choice.label}.progress`);
       assertCareerEffects(choice.career, `${stageId}.${event.id}.${choice.label}.career`);
     }
-  }
-}
-
-for (const route of GRADUATE_ROUTES) {
-  assert.equal(route.ending, undefined, `${route.id} must not end the game at undergraduate graduation`);
-  assert.ok(route.successStage && stageIds.has(route.successStage), `${route.id} has invalid successStage`);
-  assert.ok(route.failStage && stageIds.has(route.failStage), `${route.id} has invalid failStage`);
-  assertDeltaKeys(route.successEffects, `${route.id}.successEffects`);
-  assertDeltaKeys(route.failEffects, `${route.id}.failEffects`);
-  assertDeltaKeys(route.successProgress, `${route.id}.successProgress`);
-  assertDeltaKeys(route.failProgress, `${route.id}.failProgress`);
-  assertCareerEffects(route.career, `${route.id}.career`);
-  for (const requirement of route.requirements ?? []) {
-    if (requirement.type === "age" || requirement.source === "age") continue;
-    const validKeys = requirement.type === "stat" ? statKeys : progressKeys;
-    assert.ok(validKeys.has(requirement.key), `${route.id} requirement uses unknown key: ${requirement.key}`);
   }
 }
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { ACTIONS } from "../src/data/actions.js";
 import { advanceTurn, canPerformAction, chooseEvent, performAction } from "../src/game/engine.js";
-import { createInitialGame, getStage, shouldShowEnding } from "../src/game/state.js";
+import { createInitialGame, getStage, getStageIndex, shouldShowEnding } from "../src/game/state.js";
 
 function mulberry32(seed) {
   return function random() {
@@ -20,19 +20,17 @@ function chooseAction(game, random) {
   return candidates[Math.floor(random() * candidates.length)];
 }
 
+const masterIndex = getStageIndex("master");
+
 for (let seed = 1; seed <= 500; seed += 1) {
   const random = mulberry32(seed);
   let game = createInitialGame({ screen: "play" });
 
   for (let guard = 0; guard < 400; guard += 1) {
-    if (game.pendingGraduateChoice) {
-      assert.equal(getStage(game).id, "undergraduate", `seed ${seed}: graduate choice should happen at undergraduate`);
-      assert.equal(game.ending, null, `seed ${seed}: undergraduate graduation must not set ending`);
-      assert.equal(shouldShowEnding(game), false, `seed ${seed}: undergraduate graduation must not show ending`);
-      break;
-    }
+    assert.equal(game.pendingGraduateChoice, false, `seed ${seed}: graduate route choice should not appear`);
+    assert.equal(shouldShowEnding(game), false, `seed ${seed}: ending appeared before master stage`);
 
-    assert.equal(shouldShowEnding(game), false, `seed ${seed}: ending appeared before graduate choice`);
+    if (getStage(game).id === "master") break;
 
     if (game.activeEvent) {
       const choices = game.activeEvent.choices;
@@ -43,7 +41,7 @@ for (let seed = 1; seed <= 500; seed += 1) {
     }
   }
 
-  assert.equal(game.pendingGraduateChoice, true, `seed ${seed}: did not reach graduate choice`);
+  assert.equal(game.stageIndex, masterIndex, `seed ${seed}: did not reach master directly after undergraduate`);
 }
 
-console.log("本科毕业回归检查通过：完整游玩到本科结束不会直接结局。");
+console.log("本科毕业回归检查通过：完整游玩到本科后直接进入硕士。");

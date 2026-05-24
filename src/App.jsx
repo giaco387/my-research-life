@@ -309,7 +309,6 @@ function App() {
           <VersionBadge />
           <div className="home-layout">
             <div className="home-copy">
-              <p className="eyebrow">模拟经营 / 科研成长 / 回合制选择</p>
               <h1>科研之路</h1>
               <p className="intro-copy">
                 一开始，只是想选个好专业。

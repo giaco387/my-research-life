@@ -842,7 +842,7 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
               autoFocus
               maxLength={12}
               onChange={(event) => setName(event.target.value)}
-              placeholder="未命名"
+              placeholder={DEFAULT_PROFILE.name}
               value={name}
             />
             <small>当前将显示为：{finalName.slice(0, 12)}</small>

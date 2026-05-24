@@ -8,23 +8,27 @@
 
 .intro {
   display: grid;
-  align-items: end;
+  place-items: center;
 }
 
 .intro-hero {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  padding: 8vw;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: clamp(24px, 6vw, 96px);
   color: #f8fafc;
 }
 
 .intro-hero > div {
+  width: min(760px, 100%);
   max-width: 760px;
 }
 
 .home-copy {
   max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .eyebrow {
@@ -51,6 +55,8 @@ p {
 
 .intro-copy {
   max-width: 640px;
+  margin-right: auto;
+  margin-left: auto;
   color: #fff7ed;
   font-size: 18px;
   line-height: 1.75;
@@ -61,6 +67,10 @@ p {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.intro-actions {
+  justify-content: center;
 }
 
 .save-slots {
@@ -94,7 +104,7 @@ p {
 }
 
 .create-hero {
-  align-items: center;
+  place-items: center;
 }
 
 .creator-panel {

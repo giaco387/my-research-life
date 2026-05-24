@@ -8,7 +8,7 @@ export const ACTIVE_SAVE_SLOT_KEY = "research-road-active-slot-v1";
 export const SAVE_SLOT_COUNT = 3;
 export const MAX_LOGS = 80;
 export const DEFAULT_PROFILE = {
-  name: "未命名",
+  name: "子涵",
   gender: "undisclosed",
 };
 export const DEFAULT_CAREER = {

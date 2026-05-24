@@ -626,20 +626,8 @@ function LogModal({ logs, onClose }) {
   );
 }
 
-function ProfilePortrait({ game, stage }) {
-  const genderClass = game.profile?.gender === "female" ? "female" : game.profile?.gender === "male" ? "male" : "neutral";
-  const careerClass = stage.id === "high_school" || stage.id === "undergraduate" ? "student" : stage.id === "master" || stage.id === "phd" ? "researcher" : "faculty";
-  return (
-    <div className={`portrait-face ${genderClass} ${careerClass}`}>
-      <span className="portrait-hair" />
-      <span className="portrait-head" />
-      <span className="portrait-body" />
-      <span className="portrait-badge" />
-    </div>
-  );
-}
-
-function ProfileModal({ game, stage, statGroups, onClose }) {
+function ProfileModal({ game, statGroups, onClose }) {
+  const [activeTab, setActiveTab] = useState("stats");
   const career = game.career ?? {};
   const stageIndex = game.stageIndex ?? 0;
   const students = career.students ?? {};
@@ -677,19 +665,13 @@ function ProfileModal({ game, stage, statGroups, onClose }) {
           <button className="secondary compact" type="button" onClick={onClose}>关闭</button>
         </div>
 
-        <div className="profile-layout">
-          <aside className="profile-identity">
-            <div className="id-photo">
-              <ProfilePortrait game={game} stage={stage} />
-            </div>
-            <CareerLine label="阶段" value={stage.name} />
-            <CareerLine label="年龄" value={`${game.age ?? 17} 岁`} />
-            <CareerLine label="性别" value={getGenderLabel(game.profile?.gender)} />
-            <CareerLine label="起点" value={getBackgroundLabel(game.profile?.background)} />
-            <CareerLine label="当前身份" value={career.selfTitles?.[career.selfTitles.length - 1] ?? stage.subtitle} />
-          </aside>
+        <div className="profile-tabs" role="tablist" aria-label="角色档案分类">
+          <button className={activeTab === "stats" ? "profile-tab active" : "profile-tab"} onClick={() => setActiveTab("stats")} role="tab" type="button">角色状态</button>
+          <button className={activeTab === "career" ? "profile-tab active" : "profile-tab"} onClick={() => setActiveTab("career")} role="tab" type="button">履历状态</button>
+        </div>
 
-          <div className="profile-columns">
+        <div className="profile-page">
+          {activeTab === "stats" && (
             <ProfileSection title="角色状态">
               <div className="profile-stat-grid">
                 {statGroups.map((group, index) => (
@@ -701,7 +683,9 @@ function ProfileModal({ game, stage, statGroups, onClose }) {
                 ))}
               </div>
             </ProfileSection>
+          )}
 
+          {activeTab === "career" && (
             <ProfileSection title="履历状态">
               {careerEntries.length > 0 ? (
                 <div className="profile-record-grid">
@@ -713,7 +697,7 @@ function ProfileModal({ game, stage, statGroups, onClose }) {
                 <p className="profile-empty">当前阶段暂无可展示的履历内容。</p>
               )}
             </ProfileSection>
-          </div>
+          )}
         </div>
       </section>
     </div>

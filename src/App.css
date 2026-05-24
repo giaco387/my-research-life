@@ -111,6 +111,81 @@ p {
   font-size: 42px;
 }
 
+.creator-wizard {
+  max-width: 780px;
+}
+
+.creator-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.creator-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid rgba(248, 224, 167, 0.32);
+  border-radius: 8px;
+  background: rgba(254, 243, 199, 0.12);
+  color: #f8e0a7;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.creator-step span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(248, 224, 167, 0.18);
+  color: #fff7ed;
+  font-size: 12px;
+}
+
+.creator-step.active {
+  border-color: #2f80c7;
+  background: rgba(47, 128, 199, 0.34);
+  color: #ffffff;
+}
+
+.creator-step.done span {
+  background: #2f80c7;
+}
+
+.creator-step-panel {
+  min-height: 280px;
+  padding: 20px;
+  border: 1px solid rgba(107, 72, 36, 0.42);
+  border-radius: 10px;
+  background: #f5e4bd;
+  color: #4b321b;
+}
+
+.creator-step-panel .panel-heading {
+  margin-bottom: 18px;
+}
+
+.creator-step-panel h2 {
+  margin: 0 0 6px;
+  color: #4b321b;
+}
+
+.creator-step-panel p {
+  margin: 0;
+  color: #7c5a2f;
+}
+
+.step-count {
+  color: #7c5a2f;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 .creator-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
@@ -129,6 +204,10 @@ p {
   font-weight: 800;
 }
 
+.creator-step-panel .field-row > span {
+  color: #7c4a16;
+}
+
 .field-row input {
   min-height: 44px;
   padding: 0 12px;
@@ -137,6 +216,11 @@ p {
   background: #fff7df;
   color: #4b321b;
   font: inherit;
+}
+
+.field-row small {
+  color: #7c5a2f;
+  font-weight: 700;
 }
 
 .segmented-control {
@@ -171,6 +255,13 @@ p {
   border-radius: 10px;
   background: #f5e4bd;
   color: #4b321b;
+}
+
+.creator-step-panel .allocation-panel {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .points-left {
@@ -1106,6 +1197,7 @@ button:disabled {
   }
 
   .creator-grid,
+  .creator-progress,
   .allocation-list {
     grid-template-columns: 1fr;
   }

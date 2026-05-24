@@ -761,9 +761,16 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
   const [name, setName] = useState("");
   const [gender, setGender] = useState("undisclosed");
   const [allocations, setAllocations] = useState(() => Object.fromEntries(CREATION_STATS.map((key) => [key, 0])));
+  const [creationStep, setCreationStep] = useState(0);
   const usedPoints = Object.values(allocations).reduce((sum, value) => sum + value, 0);
   const remaining = CREATION_POINTS - usedPoints;
   const finalName = name.trim() || DEFAULT_PROFILE.name;
+  const creationSteps = [
+    { title: "姓名", desc: "先给这段科研人生留下一个名字。" },
+    { title: "性别", desc: "选择你希望在存档和履历里显示的身份。" },
+    { title: "属性点", desc: `分配 ${CREATION_POINTS} 点初始优势，也可以保留未用点数直接开始。` },
+  ];
+  const isLastStep = creationStep === creationSteps.length - 1;
 
   function adjustStat(key, delta) {
     setAllocations((current) => {
@@ -777,6 +784,11 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
   function submit(event) {
     event.preventDefault();
 
+    if (!isLastStep) {
+      setCreationStep((current) => Math.min(current + 1, creationSteps.length - 1));
+      return;
+    }
+
     onCreate({
       profile: {
         name: finalName.slice(0, 12),
@@ -787,7 +799,7 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
   }
 
   return (
-    <form className="creator-panel" onSubmit={submit}>
+    <form className="creator-panel creator-wizard" onSubmit={submit}>
       <div className="modal-heading">
         <div>
           <p className="eyebrow">角色创建</p>
@@ -796,67 +808,110 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
         <button className="secondary compact" type="button" onClick={onCancel}>返回</button>
       </div>
 
-      <div className="creator-grid">
-        <label className="field-row">
-          <span>姓名</span>
-          <input
-            maxLength={12}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="未命名"
-            value={name}
-          />
-        </label>
-
-        <div className="field-row">
-          <span>性别</span>
-          <div className="segmented-control">
-            {GENDER_OPTIONS.map((option) => (
-              <button
-                className={gender === option.id ? "segment active" : "segment"}
-                key={option.id}
-                onClick={() => setGender(option.id)}
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="creator-progress" aria-label="角色创建进度">
+        {creationSteps.map((step, index) => (
+          <button
+            className={[
+              "creator-step",
+              index === creationStep ? "active" : "",
+              index < creationStep ? "done" : "",
+            ].filter(Boolean).join(" ")}
+            key={step.title}
+            onClick={() => setCreationStep(index)}
+            type="button"
+          >
+            <span>{index + 1}</span>
+            {step.title}
+          </button>
+        ))}
       </div>
 
-      <section className="allocation-panel">
+      <section className="creator-step-panel">
         <div className="panel-heading">
-          <h2>初始属性点</h2>
-          <p className={remaining === 0 ? "points-left done" : "points-left"}>剩余 {remaining}</p>
+          <div>
+            <h2>{creationSteps[creationStep].title}</h2>
+            <p>{creationSteps[creationStep].desc}</p>
+          </div>
+          <span className="step-count">{creationStep + 1} / {creationSteps.length}</span>
         </div>
-        <div className="allocation-list">
-          {CREATION_STATS.map((key) => {
-            const bonus = allocations[key] ?? 0;
-            return (
-              <div className="allocation-row" key={key}>
-                <div>
-                  <strong>{STAT_LABELS[key]}</strong>
-                  <span>{baseStats[key]} + {bonus} = {baseStats[key] + bonus}</span>
-                </div>
-                <div className="stepper">
-                  <button type="button" onClick={() => adjustStat(key, -1)} disabled={bonus <= 0}>-</button>
-                  <b>{bonus}</b>
-                  <button type="button" onClick={() => adjustStat(key, 1)} disabled={remaining <= 0 || bonus >= 8}>+</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+
+        {creationStep === 0 && (
+          <label className="field-row">
+            <span>姓名</span>
+            <input
+              autoFocus
+              maxLength={12}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="未命名"
+              value={name}
+            />
+            <small>当前将显示为：{finalName.slice(0, 12)}</small>
+          </label>
+        )}
+
+        {creationStep === 1 && (
+          <div className="field-row">
+            <span>性别</span>
+            <div className="segmented-control">
+              {GENDER_OPTIONS.map((option) => (
+                <button
+                  className={gender === option.id ? "segment active" : "segment"}
+                  key={option.id}
+                  onClick={() => setGender(option.id)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <small>当前将显示为：{getGenderLabel(gender)}</small>
+          </div>
+        )}
+
+        {creationStep === 2 && (
+          <div className="allocation-panel">
+            <div className="panel-heading">
+              <h2>初始属性点</h2>
+              <p className={remaining === 0 ? "points-left done" : "points-left"}>剩余 {remaining}</p>
+            </div>
+            <div className="allocation-list">
+              {CREATION_STATS.map((key) => {
+                const bonus = allocations[key] ?? 0;
+                return (
+                  <div className="allocation-row" key={key}>
+                    <div>
+                      <strong>{STAT_LABELS[key]}</strong>
+                      <span>{baseStats[key]} + {bonus} = {baseStats[key] + bonus}</span>
+                    </div>
+                    <div className="stepper">
+                      <button type="button" onClick={() => adjustStat(key, -1)} disabled={bonus <= 0}>-</button>
+                      <b>{bonus}</b>
+                      <button type="button" onClick={() => adjustStat(key, 1)} disabled={remaining <= 0 || bonus >= 8}>+</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="intro-actions creator-actions">
-        <button className="primary" type="submit">开始科研之路</button>
-        <button className="secondary" type="button" onClick={() => setAllocations(Object.fromEntries(CREATION_STATS.map((key) => [key, 0])))}>重置点数</button>
+        {creationStep > 0 && (
+          <button className="secondary" type="button" onClick={() => setCreationStep((current) => Math.max(current - 1, 0))}>
+            上一步
+          </button>
+        )}
+        {creationStep === 2 && (
+          <button className="secondary" type="button" onClick={() => setAllocations(Object.fromEntries(CREATION_STATS.map((key) => [key, 0])))}>
+            重置点数
+          </button>
+        )}
+        <button className="primary" type="submit">{isLastStep ? "开始科研之路" : "继续"}</button>
       </div>
     </form>
   );
 }
-
 function SaveSlotList({ slots, onStart, onContinue, onDelete }) {
   return (
     <div className="save-slots">

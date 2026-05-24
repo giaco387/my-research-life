@@ -45,6 +45,37 @@ const GENDER_OPTIONS = [
   { id: "male", label: "男" },
   { id: "female", label: "女" },
 ];
+const BACKGROUND_OPTIONS = [
+  {
+    id: "steady",
+    label: "稳扎稳打",
+    desc: "你习惯把事情拆成计划，一点点推进。",
+    effects: { focus: 4, pressure: -2 },
+  },
+  {
+    id: "curious",
+    label: "好奇心重",
+    desc: "你容易被问题吸引，也常常忍不住多想一步。",
+    effects: { knowledge: 3, innovation: 3, pressure: 1 },
+  },
+  {
+    id: "social",
+    label: "会找人帮忙",
+    desc: "你不喜欢一个人硬扛，愿意把困惑说出来。",
+    effects: { eq: 4, network: 2 },
+  },
+];
+const STAGE_SCENES = {
+  high_school: "晚自习的灯还亮着，桌上摊着卷子和错题本。窗外操场安静下来，你得决定今晚怎么过。",
+  undergraduate: "新专业、新同学和陌生的实验室同时出现。你开始意识到，成绩只是大学生活的一部分。",
+  master: "课题组的日程贴在墙上，导师的建议、实验数据和论文草稿交织在一起。",
+  phd: "问题变得更窄，也更深。你需要在不确定里坚持，同时避免被它拖垮。",
+  young_faculty: "你有了自己的方向，也有了学生、经费和平台压力。每个决定都会牵动更多人。",
+  talent_track: "窗口期像倒计时一样靠近。头衔、代表作和同行认可都在逼你讲清楚自己是谁。",
+  professor: "团队已经成形，学生和项目都在向你要判断。你不再只是完成自己的论文。",
+  national_leader: "资源更大，责任也更重。你的选择会影响团队、平台，甚至一个方向的走法。",
+  academician_candidate: "评审临近，多年的成果被重新摆上桌面。真正要回答的是：哪些贡献经得起时间。",
+};
 
 const STAGE_IMAGE_FILES = {
   high_school: "high-school.webp",
@@ -160,7 +191,7 @@ function App() {
     setGame({ ...createInitialGame(), screen: "create" });
   }
 
-  function createCharacter(character) {
+function createCharacter(character) {
     const slotId = pendingSlotId ?? activeSlotId;
     if (!slotId) return;
 
@@ -172,7 +203,7 @@ function App() {
         ...createInitialGame().stats,
         ...character.stats,
       },
-      logs: [`${character.profile.name}的科研之路开始了。你把目标写在便签上：先考上一所好大学。`],
+      logs: [`${character.profile.name}的科研之路开始了。${getBackgroundLabel(character.profile.background)}的你，把目标写在便签上：先考上一所好大学。`],
     };
     setActiveSlotId(slotId);
     setPendingSlotId(null);
@@ -413,7 +444,8 @@ function App() {
           <section className="panel story-panel">
             <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
             <h2>{stage.goal}</h2>
-            <p>你还有 {game.ap} 点行动点。先想想这一回合要把时间花在哪里。</p>
+            <p>{getTurnScene(stage, game)}</p>
+            <p className="ap-line">你还有 {game.ap} 点行动点。先想想这一回合要把时间花在哪里。</p>
           </section>
 
           <details className="panel growth-panel">
@@ -453,18 +485,26 @@ function App() {
             </div>
             <div className="actions-grid">
               {actions.map((item) => (
-                <button
+                <article
                   className="action-card"
                   key={item.id}
-                  disabled={!canPerformAction(game, item)}
-                  onClick={() => handleAction(item)}
                 >
                   <div className="action-title">
                     <strong>{item.name}</strong>
                     <span>{item.cost} AP</span>
                   </div>
                   <p>{item.desc}</p>
-                  <details className="action-details" onClick={(event) => event.stopPropagation()}>
+                  <div className="action-footer">
+                    <button
+                      className="primary compact"
+                      disabled={!canPerformAction(game, item)}
+                      onClick={() => handleAction(item)}
+                      type="button"
+                    >
+                      选择
+                    </button>
+                  </div>
+                  <details className="action-details">
                     <summary>查看影响</summary>
                     {item.requirements?.length > 0 && (
                       <p className="requirements">条件：{describeRequirements(item.requirements).join("，")}</p>
@@ -474,7 +514,7 @@ function App() {
                     )}
                     <EffectChips effects={item.effects} progress={item.progress} />
                   </details>
-                </button>
+                </article>
               ))}
             </div>
           </div>
@@ -706,6 +746,7 @@ function ProfileModal({ game, stage, statGroups, onClose }) {
             <CareerLine label="阶段" value={stage.name} />
             <CareerLine label="年龄" value={`${game.age ?? 17} 岁`} />
             <CareerLine label="性别" value={getGenderLabel(game.profile?.gender)} />
+            <CareerLine label="起点" value={getBackgroundLabel(game.profile?.background)} />
             <CareerLine label="当前身份" value={career.selfTitles?.[career.selfTitles.length - 1] ?? stage.subtitle} />
           </aside>
 
@@ -784,6 +825,7 @@ function CareerLine({ label, value }) {
 function CharacterCreator({ baseStats, onCancel, onCreate }) {
   const [name, setName] = useState("");
   const [gender, setGender] = useState(DEFAULT_PROFILE.gender);
+  const [background, setBackground] = useState(DEFAULT_PROFILE.background);
   const [allocations, setAllocations] = useState(createRandomAllocations);
   const [creationStep, setCreationStep] = useState(0);
   const usedPoints = Object.values(allocations).reduce((sum, value) => sum + value, 0);
@@ -792,6 +834,7 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
   const creationSteps = [
     { title: "姓名", desc: "先给这段科研人生留下一个名字。" },
     { title: "性别", desc: "选择你希望在存档和履历里显示的身份。" },
+    { title: "背景", desc: "选择一个起点。它不会决定命运，但会改变你最开始的惯性。" },
     { title: "属性点", desc: "系统已经给出一套随机方案，你也可以手动调整。" },
   ];
   const isLastStep = creationStep === creationSteps.length - 1;
@@ -817,8 +860,9 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
       profile: {
         name: finalName.slice(0, 12),
         gender,
+        background,
       },
-      stats: Object.fromEntries(CREATION_STATS.map((key) => [key, baseStats[key] + allocations[key]])),
+      stats: Object.fromEntries(CREATION_STATS.map((key) => [key, baseStats[key] + allocations[key] + (getBackgroundOption(background).effects[key] ?? 0)])),
     });
   }
 
@@ -893,6 +937,22 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
         )}
 
         {creationStep === 2 && (
+          <div className="background-options">
+            {BACKGROUND_OPTIONS.map((option) => (
+              <button
+                className={background === option.id ? "background-card active" : "background-card"}
+                key={option.id}
+                onClick={() => setBackground(option.id)}
+                type="button"
+              >
+                <strong>{option.label}</strong>
+                <span>{option.desc}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {creationStep === 3 && (
           <div className="allocation-panel">
             <div className="panel-heading">
               <h2>初始属性点</h2>
@@ -926,12 +986,12 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
             上一步
           </button>
         )}
-        {creationStep === 2 && (
+        {creationStep === 3 && (
           <button className="secondary" type="button" onClick={() => setAllocations(createRandomAllocations())}>
             随机方案
           </button>
         )}
-        {creationStep === 2 && (
+        {creationStep === 3 && (
           <button className="secondary" type="button" onClick={() => setAllocations(EMPTY_ALLOCATIONS)}>
             重置点数
           </button>
@@ -995,6 +1055,21 @@ function getSlotSummary(slot) {
 
 function getGenderLabel(gender) {
   return GENDER_OPTIONS.find((option) => option.id === gender)?.label ?? "男";
+}
+
+function getTurnScene(stage, game) {
+  const base = STAGE_SCENES[stage.id] ?? stage.goal;
+  if ((game.stats?.pressure ?? 0) > 70) return `${base} 最近压力明显变重，连普通决定都像多了一层噪音。`;
+  if ((game.stats?.health ?? 100) < 30) return `${base} 身体已经在提醒你：继续硬撑会有代价。`;
+  return base;
+}
+
+function getBackgroundOption(background) {
+  return BACKGROUND_OPTIONS.find((option) => option.id === background) ?? BACKGROUND_OPTIONS[0];
+}
+
+function getBackgroundLabel(background) {
+  return getBackgroundOption(background).label;
 }
 
 function EffectChips({ effects, progress }) {

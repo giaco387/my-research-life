@@ -130,7 +130,7 @@ export function performAction(game, action, random = Math.random) {
   let progress = applyDelta(game.progress, action.progress);
   let career = applyCareerEffects(game.career, action.career);
   let papers = game.papers ?? [];
-  const logs = [`${stage.name} 第${game.turn}回合：${action.name}。${formatDelta(action.effects)}`];
+  const logs = [formatActionLog(stage, game, action)];
 
   if (action.system === "paper_submission") {
     const review = paperReview(stats, progress, random);
@@ -163,6 +163,13 @@ export function performAction(game, action, random = Math.random) {
   );
 
   return canPerformAnyAction(updated) ? updated : advanceTurn(updated, { random });
+}
+
+function formatActionLog(stage, game, action) {
+  const detail = formatDelta({ ...(action.effects ?? {}), ...(action.progress ?? {}) });
+  const prefix = `${stage.name} 第${game.turn}回合`;
+  if (action.flavor) return `${prefix}：${action.flavor}${detail ? `（${detail}）` : ""}`;
+  return `${prefix}：你选择了${action.name}。${action.desc}${detail ? `（${detail}）` : ""}`;
 }
 
 export function chooseEvent(game, option) {

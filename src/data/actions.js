@@ -3,12 +3,12 @@ import { requirement } from "../game/requirements.js";
 
 export const ACTIONS = {
   high_school: [
-    action("study", "刷题训练", 2, "稳定提升知识，高压但可靠。", { knowledge: 5, focus: 2, pressure: 4, health: -3 }, { exam: 8 }),
-    action("mock", "模拟考试", 3, "用实战暴露短板。", { knowledge: 3, focus: 4, pressure: 6 }, { exam: 12 }),
-    action("teacher", "请教老师", 2, "把卡住的问题讲清楚。", { knowledge: 4, eq: 2, pressure: -2 }, { exam: 6 }),
-    action("exercise", "操场跑步", 2, "恢复身体，也恢复一点信心。", { health: 8, perseverance: 3, pressure: -5 }),
-    action("sleep", "好好睡觉", 1, "专注来自足够的恢复。", { health: 7, focus: 3, pressure: -4 }),
-    action("friends", "和同学聊聊", 1, "别把自己变成孤岛。", { eq: 4, pressure: -3, network: 1 }),
+    action("study", "刷题训练", 2, "稳定提升知识，高压但可靠。", { knowledge: 5, focus: 2, pressure: 4, health: -3 }, { exam: 8 }, { flavor: "你把错题重新摊开，逼自己把每一步讲清楚。" }),
+    action("mock", "模拟考试", 3, "用实战暴露短板。", { knowledge: 3, focus: 4, pressure: 6 }, { exam: 12 }, { flavor: "计时器响起时，你终于看见自己最容易失手的地方。" }),
+    action("teacher", "请教老师", 2, "把卡住的问题讲清楚。", { knowledge: 4, eq: 2, pressure: -2 }, { exam: 6 }, { flavor: "老师没有直接给答案，只把问题拆成了几个更小的台阶。" }),
+    action("exercise", "操场跑步", 2, "恢复身体，也恢复一点信心。", { health: 8, perseverance: 3, pressure: -5 }, {}, { flavor: "跑到第三圈时，脑子里那团紧绷的线松了一点。" }),
+    action("sleep", "好好睡觉", 1, "专注来自足够的恢复。", { health: 7, focus: 3, pressure: -4 }, {}, { flavor: "你关掉台灯，决定把明天的专注留给明天。" }),
+    action("friends", "和同学聊聊", 1, "别把自己变成孤岛。", { eq: 4, pressure: -3, network: 1 }, {}, { flavor: "闲聊没有解决卷子，但你想起自己不是一个人在熬。" }),
   ],
   undergraduate: [
     action("class", "认真上课", 2, "补齐专业基础。", { knowledge: 4, focus: 2, pressure: 2 }, { gpa: 8 }),

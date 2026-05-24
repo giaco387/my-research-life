@@ -10,6 +10,7 @@ export const MAX_LOGS = 80;
 export const DEFAULT_PROFILE = {
   name: "子涵",
   gender: "male",
+  background: "steady",
 };
 export const DEFAULT_CAREER = {
   maritalStatus: "未婚",
@@ -253,7 +254,8 @@ function normalizeProfile(profile) {
 
   const name = typeof profile.name === "string" && profile.name.trim() ? profile.name.trim().slice(0, 12) : DEFAULT_PROFILE.name;
   const gender = ["male", "female"].includes(profile.gender) ? profile.gender : DEFAULT_PROFILE.gender;
-  return { name, gender };
+  const background = typeof profile.background === "string" && profile.background.trim() ? profile.background.trim().slice(0, 24) : DEFAULT_PROFILE.background;
+  return { name, gender, background };
 }
 
 function normalizeCareerGroup(defaults, values = {}, max = 999) {

@@ -32,12 +32,11 @@ import {
   saveGameToSlot,
   shouldShowEnding,
 } from "./game/state.js";
-import heroImage from "./assets/hero.png";
 import "./App.css";
 
 const GAME_VERSION = packageInfo.version;
 const HOME_COVER_STYLE = {
-  "--intro-cover": `url("${import.meta.env.BASE_URL}home-cover.png")`,
+  "--intro-cover": `url("${import.meta.env.BASE_URL}home-cover.webp")`,
 };
 const CREATION_POINTS = 20;
 const CREATION_STATS = ["knowledge", "perseverance", "focus", "health", "eq", "money"];
@@ -48,20 +47,20 @@ const GENDER_OPTIONS = [
 ];
 
 const STAGE_IMAGE_FILES = {
-  high_school: "high-school.png",
-  undergraduate: "undergraduate.png",
-  master: "master.png",
-  phd: "phd.png",
-  young_faculty: "young-faculty.png",
-  talent_track: "young-faculty.png",
-  professor: "professor.png",
-  national_leader: "professor.png",
-  academician_candidate: "academician-candidate.png",
+  high_school: "high-school.webp",
+  undergraduate: "undergraduate.webp",
+  master: "master.webp",
+  phd: "phd.webp",
+  young_faculty: "young-faculty.webp",
+  talent_track: "young-faculty.webp",
+  professor: "professor.webp",
+  national_leader: "professor.webp",
+  academician_candidate: "academician-candidate.webp",
 };
 
 function getStageImageSrc(stageId) {
   const file = STAGE_IMAGE_FILES[stageId];
-  return file ? `${import.meta.env.BASE_URL}stages/${file}` : heroImage;
+  return file ? `${import.meta.env.BASE_URL}stages/${file}` : `${import.meta.env.BASE_URL}home-cover.webp`;
 }
 
 function getStageStartIndex(stageId) {
@@ -389,7 +388,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell has-side-dock">
+    <main className="app-shell has-side-dock" style={{ "--game-cover": `url("${getStageImageSrc(stage.id)}")` }}>
       <VersionBadge />
       <header className="topbar">
         <div>
@@ -434,8 +433,6 @@ function App() {
 
       <div className="game-grid">
         <section className="main-column">
-          <StageVisual stage={stage} />
-
           <div className="panel progress-panel">
             <h2>阶段进度</h2>
             <div className="progress-list">
@@ -599,26 +596,6 @@ function DevOverview({ onClose }) {
         </div>
       </section>
     </div>
-  );
-}
-
-function StageVisual({ stage }) {
-  return (
-    <figure className="stage-visual">
-      <img
-        src={getStageImageSrc(stage.id)}
-        alt={`${stage.name}${stage.subtitle}`}
-        onError={(event) => {
-          if (event.currentTarget.src !== heroImage) {
-            event.currentTarget.src = heroImage;
-          }
-        }}
-      />
-      <figcaption>
-        <span>{stage.subtitle}</span>
-        <strong>{stage.name}</strong>
-      </figcaption>
-    </figure>
   );
 }
 

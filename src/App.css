@@ -6,6 +6,12 @@
     var(--intro-cover, url("./assets/hero.png")) center/cover;
 }
 
+.app-shell {
+  background:
+    linear-gradient(120deg, rgba(53, 38, 24, 0.68), rgba(80, 53, 28, 0.62)),
+    var(--game-cover, var(--intro-cover, url("./assets/hero.png"))) center/cover fixed;
+}
+
 .intro {
   display: grid;
   place-items: center;
@@ -490,57 +496,6 @@ button:disabled {
 .main-column {
   display: grid;
   gap: 18px;
-}
-
-.stage-visual {
-  position: relative;
-  min-height: 220px;
-  margin: 0;
-  overflow: hidden;
-  border: 2px solid rgba(107, 72, 36, 0.72);
-  border-radius: 10px;
-  background: #4b321b;
-  box-shadow: 0 18px 44px rgba(53, 38, 24, 0.18);
-}
-
-.stage-visual img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-}
-
-.stage-visual::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(24, 49, 83, 0.02), rgba(53, 38, 24, 0.72));
-  pointer-events: none;
-}
-
-.stage-visual figcaption {
-  position: absolute;
-  left: 18px;
-  bottom: 16px;
-  z-index: 1;
-  color: #ffffff;
-}
-
-.stage-visual figcaption span,
-.stage-visual figcaption strong {
-  display: block;
-}
-
-.stage-visual figcaption span {
-  color: #f8e0a7;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.stage-visual figcaption strong {
-  margin-top: 4px;
-  font-size: 28px;
-  line-height: 1.1;
 }
 
 .stat-group {

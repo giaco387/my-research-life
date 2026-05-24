@@ -8,7 +8,6 @@
 
 .app-shell {
   background:
-    linear-gradient(120deg, rgba(53, 38, 24, 0.68), rgba(80, 53, 28, 0.62)),
     var(--game-cover, var(--intro-cover, url("./assets/hero.png"))) center/cover fixed;
 }
 
@@ -449,10 +448,6 @@ button:disabled {
   color: #4b321b;
 }
 
-.app-shell.has-side-dock {
-  padding-left: 20px;
-}
-
 .topbar {
   display: flex;
   align-items: center;
@@ -688,73 +683,6 @@ button:disabled {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid rgba(107, 72, 36, 0.28);
-}
-
-.side-dock {
-  position: fixed;
-  left: 12px;
-  top: 108px;
-  z-index: 15;
-  display: grid;
-  gap: 8px;
-  width: 142px;
-}
-
-.dock-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-  min-height: 70px;
-  padding: 10px;
-  border: 1px solid #b9955b;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #fff8e7, #f1d9a6);
-  color: #4b321b;
-  cursor: pointer;
-  text-align: left;
-}
-
-.dock-card:hover {
-  border-color: #2f80c7;
-  box-shadow: 0 10px 30px rgba(95, 65, 31, 0.18);
-}
-
-.dock-card h2 {
-  margin: 0 0 3px;
-  font-size: 16px;
-  line-height: 1.1;
-}
-
-.dock-card span {
-  display: -webkit-box;
-  overflow: hidden;
-  color: #7c5a2f;
-  font-size: 11px;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.dock-card > strong {
-  flex: 0 0 auto;
-  color: #1f7cc0;
-  font-size: 11px;
-}
-
-.profile-card {
-  align-items: flex-start;
-}
-
-.profile-card .slot-kicker,
-.log-card .slot-kicker {
-  margin-bottom: 3px !important;
-  font-size: 11px;
-}
-
-.log-card {
-  min-height: 78px;
 }
 
 .id-photo {
@@ -1357,14 +1285,6 @@ button:disabled {
 }
 
 @media (max-width: 1100px) {
-  .app-shell.has-side-dock {
-    padding-left: 20px;
-  }
-
-  .side-dock {
-    top: 90px;
-  }
-
   .game-grid {
     grid-template-columns: 1fr;
   }
@@ -1394,16 +1314,6 @@ button:disabled {
   .app-shell,
   .intro-hero {
     padding: 16px;
-  }
-
-  .app-shell.has-side-dock {
-    padding: 14px 14px 92px;
-  }
-
-  .side-dock {
-    left: 10px;
-    top: 86px;
-    width: 124px;
   }
 
   .play-toolbar {

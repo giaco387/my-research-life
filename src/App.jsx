@@ -420,25 +420,20 @@ function createCharacter(character) {
   }
 
   return (
-    <main className="app-shell has-side-dock" style={{ "--game-cover": `url("${getStageImageSrc(stage.id)}")` }}>
+    <main className="app-shell" style={{ "--game-cover": `url("${getStageImageSrc(stage.id)}")` }}>
       <VersionBadge />
       <header className="topbar">
         <div>
           <p className="eyebrow">{stage.subtitle}</p>
           <h1>{game.profile?.name ?? DEFAULT_PROFILE.name}</h1>
         </div>
-        <div className="top-actions">
-          <button className="secondary" onClick={returnToSlots}>存档列表</button>
-          <button className="secondary" onClick={resetGame}>重新开始</button>
-        </div>
+        {isDevMode && (
+          <div className="top-actions">
+            <button className="secondary" onClick={returnToSlots}>存档列表</button>
+            <button className="secondary" onClick={resetGame}>重新开始</button>
+          </div>
+        )}
       </header>
-
-      <SideDock
-        game={game}
-        stage={stage}
-        onOpenLogs={() => setShowLogModal(true)}
-        onOpenProfile={() => setShowProfileModal(true)}
-      />
 
       <section className="map-caption">
         <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>
@@ -510,23 +505,6 @@ function createCharacter(character) {
 
 function VersionBadge() {
   return <div className="version-badge">v{GAME_VERSION}</div>;
-}
-
-function SideDock({ game, stage, onOpenLogs, onOpenProfile }) {
-  const latestLog = game.logs?.[0] ?? "暂无记录。";
-  return (
-    <aside className="side-dock" aria-label="角色与记录">
-      <ProfileCard game={game} stage={stage} onOpen={onOpenProfile} />
-      <button className="dock-card log-card" type="button" onClick={onOpenLogs}>
-        <div>
-          <p className="slot-kicker">记录</p>
-          <h2>最新</h2>
-          <span>{latestLog}</span>
-        </div>
-        <strong>查看</strong>
-      </button>
-    </aside>
-  );
 }
 
 function PlayPanel({ actions, game, onAction, onClose, panel, stage }) {
@@ -670,24 +648,6 @@ function DevOverview({ onClose }) {
         </div>
       </section>
     </div>
-  );
-}
-
-function ProfileCard({ game, stage, onOpen }) {
-  const career = game.career ?? {};
-  const title = career.selfTitles?.[career.selfTitles.length - 1] ?? stage.subtitle;
-  return (
-    <button className="dock-card profile-card" type="button" onClick={onOpen}>
-      <div className="id-photo small" aria-hidden="true">
-        <ProfilePortrait game={game} stage={stage} />
-      </div>
-      <div>
-        <p className="slot-kicker">角色档案</p>
-        <h2>{game.profile?.name ?? DEFAULT_PROFILE.name}</h2>
-        <span>{game.age ?? 17} 岁 / {getGenderLabel(game.profile?.gender)} / {title}</span>
-      </div>
-      <strong>查看</strong>
-    </button>
   );
 }
 

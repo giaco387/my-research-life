@@ -1,7 +1,7 @@
 {
   "name": "my-research-life",
   "private": true,
-  "version": "0.1.14",
+  "version": "0.1.15",
   "type": "module",
   "homepage": "https://giaco387.github.io/my-research-life",
   "scripts": {

@@ -1,10 +1,10 @@
 export const ENDINGS = [
   {
     id: "academician",
-    title: "当选院士",
-    method: "在院士候选阶段完成高质量评审，同时具备长期原创贡献、代表性成果、重要奖项、重大项目、人才培养和同行认可。",
+    title: "学术领军者",
+    method: "在学术领军成熟期获得高质量同行评议，同时具备长期原创贡献、代表性成果、重要奖项、重大项目、人才培养和同行认可。",
     requirements: [
-      ["院士评审", "academyReview", 90],
+      ["同行评议", "academyReview", 90],
       ["录用论文", "acceptedPapers", 16],
       ["高影响论文", "highImpactPapers", 4],
       ["代表作", "representativeWorks", 3],
@@ -37,14 +37,14 @@ export const ENDINGS = [
       s.network >= 75 &&
       s.health >= 35 &&
       s.pressure <= 65,
-    text: "你的原创贡献、人才培养和长期学术影响获得同行认可。科研之路抵达最高荣誉，但问题本身仍在前方。",
+    text: "你的原创贡献、人才培养和长期学术影响获得同行认可。你成为一个方向上的领军者，但问题本身仍在前方。",
   },
   {
     id: "master",
     title: "学术大师",
-    method: "即使没有完全通过院士评审，也用极高原创贡献留下长期学术坐标。",
+    method: "即使没有拿到所有头衔，也用极高原创贡献留下长期学术坐标。",
     requirements: [
-      ["院士评审", "academyReview", 76],
+      ["同行评议", "academyReview", 76],
       ["高影响论文", "highImpactPapers", 3],
       ["代表作", "representativeWorks", 3],
       ["重大项目", "majorProject", 72],

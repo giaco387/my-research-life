@@ -74,8 +74,8 @@ export function stageBonus(stageId, stats, progress) {
 
   if (stageId === "professor") {
     const readiness = progress.majorProject * 0.38 + progress.talent * 0.3 + progress.talentTitles * 0.16 + stats.contribution * 0.16;
-    if (readiness >= 72) return { text: "你形成了学术影响和人才梯队，开始进入国家级人才与重大项目的更高层次竞争。", effects: { reputation: 10, contribution: 8, network: 6 } };
-    if (readiness >= 50) return { text: "你成为稳健的学术带头人，但距离最高评审仍有差距。", effects: { reputation: 6, contribution: 4 } };
+    if (readiness >= 72) return { text: "你形成了学术影响和人才梯队，开始进入杰青、长江和创新群体等更高层次竞争。", effects: { reputation: 10, contribution: 8, network: 6 } };
+    if (readiness >= 50) return { text: "你成为稳健的学术带头人，但代表性成果和同行共识仍需要继续积累。", effects: { reputation: 6, contribution: 4 } };
     return { text: "你承担了大量事务，真正能沉淀为学术影响的成果偏少。", effects: { pressure: 6, eq: 3 } };
   }
 
@@ -86,12 +86,12 @@ export function stageBonus(stageId, stats, progress) {
       progress.strategicContribution * 0.24 +
       progress.peerRecognition * 0.16 +
       stats.contribution * 0.1;
-    if (readiness >= 76) return { text: "你用重大项目、团队梯队和长期原创贡献进入院士候选视野。", effects: { reputation: 10, contribution: 8, network: 8 } };
-    if (readiness >= 55) return { text: "你具备学术领军者的基本轮廓，但最高评审还会追问代表性成果和同行共识。", effects: { reputation: 6, contribution: 5, pressure: 3 } };
-    return { text: "国家级平台带来资源，也放大了消耗。你还需要更清晰的原创主线。", effects: { pressure: 7, health: -3 } };
+    if (readiness >= 76) return { text: "你用重大项目、团队梯队和长期原创贡献形成了清晰的学术领军位置。", effects: { reputation: 10, contribution: 8, network: 8 } };
+    if (readiness >= 55) return { text: "你具备学术领军者的基本轮廓，但代表性成果和同行共识仍会被反复追问。", effects: { reputation: 6, contribution: 5, pressure: 3 } };
+    return { text: "更大的平台带来资源，也放大了消耗。你还需要更清晰的原创主线。", effects: { pressure: 7, health: -3 } };
   }
 
-  return { text: "你进入最终评审阶段，所有积累都会被重新衡量。", effects: { reputation: 2 } };
+  return { text: "你进入学术领军成熟期，所有积累都会被同行和时间重新衡量。", effects: { reputation: 2 } };
 }
 
 export function paperReview(stats, progress, random = Math.random) {

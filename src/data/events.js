@@ -104,7 +104,7 @@ export const EVENTS = {
     ]),
   ],
   national_leader: [
-    event("platform_audit", "平台评估", "国家级平台要求提交阶段总结。表格很厚，但真正难写的是哪些贡献经得起十年后再看。", [
+    event("platform_audit", "平台评估", "重大平台要求提交阶段总结。表格很厚，但真正难写的是哪些贡献经得起十年后再看。", [
       choice("用数据和开放材料说话", { reputation: 4, pressure: 4 }, { integrity: 8, peerRecognition: 5 }),
       choice("突出应用和战略价值", { writing: 4, network: 3, pressure: 3 }, { strategicContribution: 8 }),
     ]),
@@ -122,7 +122,7 @@ export const EVENTS = {
       choice("完整公开材料", { reputation: 4, pressure: 3 }, { academyReview: 8 }),
       choice("请合作者共同说明", { network: 4, eq: 3, pressure: 2 }, { academyReview: 6 }),
     ]),
-    event("final_vote", "最终评议", "多年成果被放到同一张桌上比较，评议进入最后阶段。", [
+    event("final_vote", "同行评议", "多年成果被放到同一张桌上比较，同行开始追问你的工作是否真的改变了问题本身。", [
       choice("接受同行评议", { pressure: 5, reputation: 3 }, { academyReview: 10 }),
       choice("保持节奏，继续做研究", { pressure: -3, contribution: 4 }, { academyReview: 6 }),
     ]),

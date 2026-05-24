@@ -157,7 +157,7 @@ export const ACTIONS = {
       requirements: [requirement("创新", "innovation", 62), requirement("重大项目", "majorProject", 55, "progress")],
       risk: { chance: 0.26, text: "战略问题推进缓慢，短期看不到结果，但团队积累了难得的数据和方法。", effects: { perseverance: 4, pressure: 5 }, progress: { strategicContribution: -4 } },
     }),
-    action("field_consensus", "形成领域共识", 3, "院士候选不是自我申报，同行是否愿意推荐会在这里逐渐显形。", { reputation: 6, network: 7, pressure: 4 }, { peerRecognition: 12, academyReview: 6 }, {
+    action("field_consensus", "形成领域共识", 3, "学术领军不是自我宣称，同行是否真正认可会在这里逐渐显形。", { reputation: 6, network: 7, pressure: 4 }, { peerRecognition: 12, academyReview: 6 }, {
       maxUses: 3,
       requirements: [requirement("同行认可", "peerRecognition", 45, "progress")],
     }),
@@ -170,7 +170,7 @@ export const ACTIONS = {
     action("recover", "维持生活秩序", 1, "越接近顶端，越需要有人提醒你不是一台评审材料生成机器。", { health: 8, pressure: -8, focus: 2 }),
   ],
   academician_candidate: [
-    action("summarize", "凝练原创贡献", 3, "把一生工作压缩成几条真正站得住的贡献。", { contribution: 8, writing: 5, pressure: 4 }, { academyReview: 12 }, {
+    action("summarize", "凝练原创贡献", 3, "把多年工作压缩成几条真正站得住的贡献。", { contribution: 8, writing: 5, pressure: 4 }, { academyReview: 12 }, {
       maxUses: 3,
     }),
     action("peer_support", "同行推荐", 3, "声望不是投票机器，但同行认可是硬条件。", { reputation: 7, network: 5, pressure: 3 }, { academyReview: 10 }, {
@@ -185,6 +185,6 @@ export const ACTIONS = {
     action("public_impact", "社会影响", 3, "让基础研究和现实问题产生连接。", { reputation: 5, money: 4, network: 3 }, { academyReview: 8 }, {
       maxUses: 2,
     }),
-    action("recover", "保持健康", 1, "终局评审前，身体依然是所有行动的前提。", { health: 8, pressure: -7 }),
+    action("recover", "保持健康", 1, "越到后期，身体依然是所有行动的前提。", { health: 8, pressure: -7 }),
   ],
 };

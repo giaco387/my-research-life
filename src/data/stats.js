@@ -32,7 +32,7 @@ export const STAT_LABELS = {
   team: "团队建设",
   majorProject: "重大项目",
   talent: "人才培养",
-  academyReview: "院士评审",
+  academyReview: "同行评议",
 };
 
 export const INITIAL_STATS = {

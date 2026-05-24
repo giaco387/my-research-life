@@ -449,14 +449,18 @@ function createCharacter(character) {
       </nav>
 
       {openPlayPanel && (
-        <PlayPanel
-          actions={actions}
-          game={game}
-          onAction={handleAction}
-          onClose={() => setOpenPlayPanel(null)}
-          panel={openPlayPanel}
-          stage={stage}
-        />
+        <div className="play-panel-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setOpenPlayPanel(null);
+        }}>
+          <PlayPanel
+            actions={actions}
+            game={game}
+            onAction={handleAction}
+            onClose={() => setOpenPlayPanel(null)}
+            panel={openPlayPanel}
+            stage={stage}
+          />
+        </div>
       )}
 
       {game.activeEvent && (
@@ -510,7 +514,7 @@ function VersionBadge() {
 function PlayPanel({ actions, game, onAction, onClose, panel, stage }) {
   const title = panel === "actions" ? "这一回合做什么" : panel === "growth" ? "成长面板" : "当前处境";
   return (
-    <aside className={`play-panel ${panel}`} aria-label={title}>
+    <aside className={`play-panel ${panel}`} aria-label={title} onMouseDown={(event) => event.stopPropagation()}>
       <div className="modal-heading">
         <div>
           <p className="eyebrow">{stage.name} · 第 {game.turn} 回合</p>

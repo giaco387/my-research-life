@@ -565,13 +565,19 @@ button:disabled {
   color: #ffffff;
 }
 
-.play-panel {
+.play-panel-backdrop {
   position: fixed;
-  right: 24px;
-  bottom: 96px;
+  inset: 0;
   z-index: 28;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(53, 38, 24, 0.28);
+}
+
+.play-panel {
   width: min(720px, calc(100vw - 48px));
-  max-height: min(720px, calc(100vh - 132px));
+  max-height: min(720px, calc(100vh - 48px));
   overflow: auto;
   padding: 20px;
   border: 2px solid rgba(107, 72, 36, 0.62);
@@ -1323,10 +1329,12 @@ button:disabled {
   }
 
   .play-panel {
-    right: 12px;
-    bottom: 82px;
     width: calc(100vw - 24px);
-    max-height: calc(100vh - 104px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .play-panel-backdrop {
+    padding: 12px;
   }
 
   .map-caption {

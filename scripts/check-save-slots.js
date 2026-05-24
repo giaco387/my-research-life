@@ -52,7 +52,7 @@ assert.equal(migratedAcademician[0].game.age, 54);
 const repairedProfile = normalizeSaveSlots([{ id: 1, game: { profile: { name: "很长很长很长很长的名字", gender: "bad" } } }]);
 assert.ok(repairedProfile[0].game.profile.name.length > 0);
 assert.ok(repairedProfile[0].game.profile.name.length <= 12);
-assert.equal(repairedProfile[0].game.profile.gender, "undisclosed");
+assert.equal(repairedProfile[0].game.profile.gender, "male");
 
 const repairedCareer = normalizeSaveSlots([{ id: 1, game: { career: { children: 99, mentor: "", grants: { applications: 3 } } } }]);
 assert.equal(repairedCareer[0].game.career.children, 8);

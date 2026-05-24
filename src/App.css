@@ -235,7 +235,7 @@ p {
 
 .segmented-control {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   overflow: hidden;
   border: 1px solid rgba(107, 72, 36, 0.45);
   border-radius: 8px;
@@ -1000,9 +1000,9 @@ button:disabled {
 
 .version-badge {
   position: fixed;
-  right: 14px;
-  bottom: 12px;
-  z-index: 30;
+  right: clamp(16px, 2vw, 28px);
+  bottom: clamp(16px, 2vw, 28px);
+  z-index: 60;
   padding: 5px 8px;
   border: 1px solid rgba(107, 72, 36, 0.46);
   border-radius: 8px;

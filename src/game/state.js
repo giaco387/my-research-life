@@ -9,7 +9,7 @@ export const SAVE_SLOT_COUNT = 3;
 export const MAX_LOGS = 80;
 export const DEFAULT_PROFILE = {
   name: "子涵",
-  gender: "undisclosed",
+  gender: "male",
 };
 export const DEFAULT_CAREER = {
   maritalStatus: "未婚",
@@ -252,7 +252,7 @@ function normalizeProfile(profile) {
   if (!profile || typeof profile !== "object") return { ...DEFAULT_PROFILE };
 
   const name = typeof profile.name === "string" && profile.name.trim() ? profile.name.trim().slice(0, 12) : DEFAULT_PROFILE.name;
-  const gender = ["male", "female", "undisclosed"].includes(profile.gender) ? profile.gender : DEFAULT_PROFILE.gender;
+  const gender = ["male", "female"].includes(profile.gender) ? profile.gender : DEFAULT_PROFILE.gender;
   return { name, gender };
 }
 

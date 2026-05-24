@@ -41,10 +41,10 @@ const HOME_COVER_STYLE = {
 };
 const CREATION_POINTS = 20;
 const CREATION_STATS = ["knowledge", "perseverance", "focus", "health", "eq", "money"];
+const EMPTY_ALLOCATIONS = Object.fromEntries(CREATION_STATS.map((key) => [key, 0]));
 const GENDER_OPTIONS = [
-  { id: "female", label: "女" },
   { id: "male", label: "男" },
-  { id: "undisclosed", label: "不说明" },
+  { id: "female", label: "女" },
 ];
 
 const STAGE_IMAGE_FILES = {
@@ -759,8 +759,8 @@ function CareerLine({ label, value }) {
 
 function CharacterCreator({ baseStats, onCancel, onCreate }) {
   const [name, setName] = useState("");
-  const [gender, setGender] = useState("undisclosed");
-  const [allocations, setAllocations] = useState(() => Object.fromEntries(CREATION_STATS.map((key) => [key, 0])));
+  const [gender, setGender] = useState(DEFAULT_PROFILE.gender);
+  const [allocations, setAllocations] = useState(createRandomAllocations);
   const [creationStep, setCreationStep] = useState(0);
   const usedPoints = Object.values(allocations).reduce((sum, value) => sum + value, 0);
   const remaining = CREATION_POINTS - usedPoints;
@@ -768,7 +768,7 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
   const creationSteps = [
     { title: "姓名", desc: "先给这段科研人生留下一个名字。" },
     { title: "性别", desc: "选择你希望在存档和履历里显示的身份。" },
-    { title: "属性点", desc: `分配 ${CREATION_POINTS} 点初始优势，也可以保留未用点数直接开始。` },
+    { title: "属性点", desc: "系统已经给出一套随机方案，你也可以手动调整。" },
   ];
   const isLastStep = creationStep === creationSteps.length - 1;
 
@@ -903,7 +903,12 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
           </button>
         )}
         {creationStep === 2 && (
-          <button className="secondary" type="button" onClick={() => setAllocations(Object.fromEntries(CREATION_STATS.map((key) => [key, 0])))}>
+          <button className="secondary" type="button" onClick={() => setAllocations(createRandomAllocations())}>
+            随机方案
+          </button>
+        )}
+        {creationStep === 2 && (
+          <button className="secondary" type="button" onClick={() => setAllocations(EMPTY_ALLOCATIONS)}>
             重置点数
           </button>
         )}
@@ -912,6 +917,17 @@ function CharacterCreator({ baseStats, onCancel, onCreate }) {
     </form>
   );
 }
+
+function createRandomAllocations() {
+  const allocations = { ...EMPTY_ALLOCATIONS };
+  for (let point = 0; point < CREATION_POINTS; point += 1) {
+    const availableStats = CREATION_STATS.filter((key) => allocations[key] < 8);
+    const selected = availableStats[Math.floor(Math.random() * availableStats.length)];
+    allocations[selected] += 1;
+  }
+  return allocations;
+}
+
 function SaveSlotList({ slots, onStart, onContinue, onDelete }) {
   return (
     <div className="save-slots">
@@ -954,7 +970,7 @@ function getSlotSummary(slot) {
 }
 
 function getGenderLabel(gender) {
-  return GENDER_OPTIONS.find((option) => option.id === gender)?.label ?? "不说明";
+  return GENDER_OPTIONS.find((option) => option.id === gender)?.label ?? "男";
 }
 
 function EffectChips({ effects, progress }) {
